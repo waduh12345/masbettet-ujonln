@@ -33,7 +33,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Pencil, Trash2, Search } from "lucide-react";
 import SubMapelForm from "@/components/form-modal/master/sub-mata-pelajaran-form";
-import { Combobox } from "@/components/ui/combo-box";
 import { SiteHeader } from "@/components/site-header";
 
 export default function SubMapelPage() {
@@ -63,8 +62,8 @@ export default function SubMapelPage() {
   const [deleteSub, { isLoading: deleting }] = useDeleteSubjectSubMutation();
 
   // Subject list for toolbar combobox (filter + preset form)
-  const [subjectSearch, setSubjectSearch] = useState<string>("");
-  const { data: subjectListResp, isFetching: subjectLoading } =
+  const [subjectSearch] = useState<string>("");
+  const { data: subjectListResp } =
     useGetSubjectListQuery({
       page: 1,
       paginate: 20,
@@ -212,9 +211,6 @@ export default function SubMapelPage() {
                     </tr>
                   ) : (
                     rows.map((row, idx) => {
-                      const subjectName =
-                        subjects.find((s) => s.id === row.subject_id)?.name ??
-                        `#${row.subject_id}`;
                       return (
                         <tr key={row.id} className="border-b">
                           <td className="py-2 px-3">

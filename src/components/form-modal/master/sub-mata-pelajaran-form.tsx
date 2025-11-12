@@ -49,7 +49,6 @@ export default function SubMapelForm({
   onSuccess,
   onCancel,
   subjectPresetId,
-  subjectPresetName,
 }: SubMapelFormProps) {
   const {
     register,
@@ -111,17 +110,6 @@ export default function SubMapelForm({
 
   const loading = isSubmitting || creating || updating;
 
-  // === Tampilan label subject ===
-  const subjectLabel =
-    mode === "edit"
-      ? // Saat edit, gunakan langsung dari API
-        initialData?.subject_name
-        ? initialData.subject_code
-          ? `${initialData.subject_name} — ${initialData.subject_code}`
-          : initialData.subject_name
-        : `#${initialData?.subject_id}`
-      : // Saat create, gunakan preset dari page
-        subjectPresetName ?? "Belum dipilih (pilih di toolbar halaman)";
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
