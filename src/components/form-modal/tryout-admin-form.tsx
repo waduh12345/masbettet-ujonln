@@ -86,7 +86,7 @@ export default function TryoutForm({
 }: Props) {
   const [form, setForm] = React.useState<FormState>(initial);
 
-  // Prodi
+  // Jurusan
   const [schoolSearch, setSchoolSearch] = React.useState<string>("");
   const { data: schoolListResp, isFetching: loadingSchools } =
     useGetSchoolListQuery(
@@ -118,7 +118,7 @@ export default function TryoutForm({
 
   const validate = (): string | null => {
     if (!form.title.trim()) return "Judul wajib diisi.";
-    if (!form.school_id) return "Prodi wajib diisi.";
+    if (!form.school_id) return "Jurusan wajib diisi.";
     if (!form.user_id) return "Pengawas wajib dipilih.";
     if (
       form.timer_type === "per_test" &&
@@ -147,7 +147,7 @@ export default function TryoutForm({
       {/* Kiri */}
       <div className="space-y-3">
         <div>
-          <Label>Prodi</Label>
+          <Label>Jurusan</Label>
           <div className="h-2" />
           <Combobox<School>
             value={form.school_id}
@@ -155,7 +155,7 @@ export default function TryoutForm({
             onSearchChange={setSchoolSearch}
             data={schools}
             isLoading={loadingSchools}
-            placeholder="Pilih Prodi"
+            placeholder="Pilih Jurusan"
             getOptionLabel={(s) => s.name}
           />
         </div>

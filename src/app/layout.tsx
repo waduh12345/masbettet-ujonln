@@ -15,11 +15,11 @@ import ClientAuthGuard from "@/components/client-guards";
 // };
 
 export const metadata: Metadata = {
-  title: "Ujian Online",
+  title: "Masbettet",
   description:
     "Solusi cerdas untuk mempermudah manajemen dan pemantauan penjualan secara efisien.",
   icons: {
-    icon: "/logo-stikes.jpg",
+    icon: "/masbettet-logo.webp",
   },
 };
 

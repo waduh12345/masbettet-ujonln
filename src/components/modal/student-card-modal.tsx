@@ -84,11 +84,11 @@ export default function StudentCardModal({
           <div class="col">
             <div class="divider"></div>
             <div class="kv"><div class="k">Nama Peserta</div><div class="v">${name}</div></div>
-            <div class="kv"><div class="k">NIM</div><div class="v">${nim}</div></div>
+            <div class="kv"><div class="k">Username</div><div class="v">${nim}</div></div>
             <div class="kv"><div class="k">Password</div><div class="v">${pwd}</div></div>
             <div class="kv"><div class="k">Kelas</div><div class="v">${kelas}</div></div>
             <div class="kv"><div class="k">Sesi / Ruang</div><div class="v">${sesi} / ${ruang}</div></div>
-            <div class="kv"><div class="k">Prodi</div><div class="v">${prodi}</div></div>
+            <div class="kv"><div class="k">Jurusan</div><div class="v">${prodi}</div></div>
           </div>
           <div class="avatar">
             <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -154,11 +154,11 @@ export default function StudentCardModal({
                   <div className="my-2 h-px w-full bg-border" />
                   {[
                     ["Nama Peserta", name],
-                    ["NIM", nim],
+                    ["Username", nim],
                     ["Password", String(pwd)],
                     ["Kelas", String(kelas)],
                     ["Sesi / Ruang", `${sesi} / ${ruang}`],
-                    ["Prodi", String(prodi)],
+                    ["Jurusan", String(prodi)],
                   ].map(([k, v]) => (
                     <div
                       key={k}

@@ -47,20 +47,28 @@ export default function LoginForm() {
       {/* Left: Login Form */}
       <div className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Masuk ke Akun Anda</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Masukkan email Anda untuk masuk ke akun
+          <div className="flex flex-col items-center space-y-2 text-center">
+            <Image
+              src="/masbettet-logo.webp"
+              alt="Masbettet"
+              width={80}
+              height={80}
+              className="object-contain mx-auto"
+              unoptimized
+            />
+            <h1 className="text-2xl font-bold">Aplikasi Masbettet</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-[-5px]">
+              MA Miftahul Ulum Bettet Pamekasan
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email / NIM</Label>
+              <Label htmlFor="email">Email / Username</Label>
               <Input
                 id="email"
                 type="text"
-                placeholder="m@example.com atau SKA123214"
+                placeholder="santri@gmail.com atau santri123"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 text-black dark:text-white"
@@ -71,12 +79,6 @@ export default function LoginForm() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="password">Password</Label>
-                <a
-                  href="#"
-                  className="text-sm text-gray-500 dark:text-gray-400 hover:underline"
-                >
-                  Forgot your password?
-                </a>
               </div>
               <Input
                 id="password"
@@ -108,12 +110,12 @@ export default function LoginForm() {
       {/* Right: Illustration */}
       <div className="hidden lg:block bg-neutral-100 dark:bg-neutral-900 relative">
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-12 rounded-lg">
+          <div className="border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-8 rounded-lg">
             <Image
-              src="/bg-login.png"
-              alt="Ujian Online"
-              width={400}
-              height={400}
+              src="/masbettet-login.webp"
+              alt="Masbettet"
+              width={500}
+              height={500}
               className="object-contain rounded-4xl"
               unoptimized
             />

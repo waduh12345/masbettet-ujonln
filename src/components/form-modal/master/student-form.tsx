@@ -157,7 +157,7 @@ export default function StudentForm({
     if (!schoolId) {
       void Swal.fire({
         icon: "warning",
-        title: "Pilih Prodi",
+        title: "Pilih Jurusan",
         text: "Field prodi wajib diisi.",
       });
       return;
@@ -314,14 +314,14 @@ export default function StudentForm({
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* school */}
               <div className="space-y-2">
-                <Label>Prodi</Label>
+                <Label>Jurusan</Label>
                 <Combobox<School>
                   value={schoolId}
                   onChange={(v) => setSchoolId(v)}
                   onSearchChange={setSchoolSearch}
                   data={schools}
                   isLoading={loadingSchools}
-                  placeholder="Pilih Prodi"
+                  placeholder="Pilih Jurusan"
                   getOptionLabel={(s) => s.name}
                 />
               </div>
@@ -342,11 +342,11 @@ export default function StudentForm({
 
               {/* name */}
               <div className="space-y-2">
-                <Label>NIM</Label>
+                <Label>Username</Label>
                 <Input
                   value={nim}
                   onChange={(e) => setNim(e.target.value)}
-                  placeholder="NIM siswa"
+                  placeholder="Username siswa"
                 />
               </div>
 

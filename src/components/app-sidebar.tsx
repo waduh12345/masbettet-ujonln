@@ -77,8 +77,8 @@ const NAV_BY_ROLE: Record<RoleName, MenuBundle> = {
         icon: IconLayoutDashboard,
       },
       {
-        title: "Data Mahasiswa",
-        url: "/cms/mahasiswa",
+        title: "Data Siswa",
+        url: "/cms/siswa",
         icon: IconBrandDatabricks,
       },
       {
@@ -105,10 +105,10 @@ const NAV_BY_ROLE: Record<RoleName, MenuBundle> = {
         url: "#",
         icon: IconZoomQuestion,
         children: [
-          { title: "Prodi", url: "/cms/prodi" },
           { title: "Jurusan", url: "/cms/jurusan" },
+          // { title: "Jurusan", url: "/cms/jurusan" },
           { title: "Kelas", url: "/cms/class" },
-          { title: "Mata Kuliah", url: "/cms/mata-kuliah" },
+          { title: "Mata Pelajaran", url: "/cms/mata-pelajaran" },
         ],
       },
       {
@@ -139,7 +139,7 @@ const NAV_BY_ROLE: Record<RoleName, MenuBundle> = {
         icon: IconDashboard,
       },
       {
-        title: "Ujian Online",
+        title: "Masbettet",
         url: "/cms/tryout",
         icon: IconZoomQuestion,
       },
@@ -170,9 +170,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const menus = NAV_BY_ROLE[roleName];
 
   const userForSidebar = {
-    name: session?.user?.name ?? "Ujian Online",
+    name: session?.user?.name ?? "Masbettet",
     email: session?.user?.email ?? "user@example.com",
-    avatar: "/try-out-virtual.webp",
+    avatar: "/masbettet-logo.webp",
   };
 
   return (
@@ -186,12 +186,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <Image
-                  src="/try-out-virtual.webp"
-                  alt="Ujian Online"
+                  src="/masbettet-logo.webp"
+                  alt="Masbettet"
                   width={32}
                   height={32}
                 />
-                <span className="text-base font-bold">Ujian Online</span>
+                <span className="text-base font-bold">Masbettet</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

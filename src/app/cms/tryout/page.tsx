@@ -406,7 +406,7 @@ export default function TryoutPage() {
                       onSearchChange={setSchoolSearch}
                       data={schools}
                       isLoading={loadingSchools}
-                      placeholder="Semua Prodi"
+                      placeholder="Semua Jurusan"
                       getOptionLabel={(s) => s.name}
                     />
                     {schoolId !== null && (
@@ -446,7 +446,7 @@ export default function TryoutPage() {
                 <thead className="bg-muted/50">
                   <tr className="text-left">
                     <th className="p-3">Judul</th>
-                    <th className="p-3">Prodi</th>
+                    <th className="p-3">Jurusan</th>
                     <th className="p-3">Pengawas</th>
                     <th className="p-3">Waktu (detik)</th>
                     <th className="p-3">Shuffle</th>

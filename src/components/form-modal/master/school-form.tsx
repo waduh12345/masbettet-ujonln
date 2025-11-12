@@ -96,7 +96,7 @@ export default function SchoolForm({
       <DialogContent className="sm:max-w-2xl md:max-w-3xl xl:max-w-5xl z-[1000]">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? "Edit Prodi" : "Tambah Prodi"}
+            {isEdit ? "Edit Jurusan" : "Tambah Jurusan"}
           </DialogTitle>
         </DialogHeader>
 
@@ -104,7 +104,7 @@ export default function SchoolForm({
           <div className="grid gap-2">
             <Label>Nama *</Label>
             <Input
-              placeholder="Nama prodi"
+              placeholder="Nama jurusan"
               value={form.name}
               onChange={(e) => update("name", e.target.value)}
               disabled={isFetching}

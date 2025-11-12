@@ -114,7 +114,7 @@ function Chip({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** ====== Kartu Mahasiswa (preview + print) ====== */
+/** ====== Kartu Siswa (preview + print) ====== */
 function StudentCard({ me }: { me: Me }) {
   const s = me.student;
   const nim = String(s?.nim ?? "—");
@@ -129,7 +129,7 @@ function StudentCard({ me }: { me: Me }) {
 <html>
 <head>
 <meta charset="utf-8"/>
-<title>Kartu Mahasiswa</title>
+<title>Kartu Siswa</title>
 <style>
   @page { size: A4; margin: 16mm }
   *{box-sizing:border-box}
@@ -166,9 +166,9 @@ function StudentCard({ me }: { me: Me }) {
           <div class="col">
             <div class="divider"></div>
             <div class="kv"><div class="k">Nama</div><div class="v">${name}</div></div>
-            <div class="kv"><div class="k">NIM</div><div class="v">${nim}</div></div>
+            <div class="kv"><div class="k">Username</div><div class="v">${nim}</div></div>
             <div class="kv"><div class="k">Password</div><div class="v">${pwd}</div></div>
-            <div class="kv"><div class="k">Prodi</div><div class="v">${prodi}</div></div>
+            <div class="kv"><div class="k">Jurusan</div><div class="v">${prodi}</div></div>
             <div class="kv"><div class="k">Kelas</div><div class="v">${kelas}</div></div>
             <div class="kv"><div class="k">Sesi / Ruang</div><div class="v">${sesi} / ${ruang}</div></div>
           </div>
@@ -202,7 +202,7 @@ function StudentCard({ me }: { me: Me }) {
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <GraduationCap className="h-5 w-5 text-sky-600" />
-          <h2 className="text-lg font-semibold">Kartu Mahasiswa</h2>
+          <h2 className="text-lg font-semibold">Kartu Siswa</h2>
         </div>
         <button
           onClick={printCard}
@@ -235,9 +235,9 @@ function StudentCard({ me }: { me: Me }) {
                 <div className="my-2 h-px w-full bg-border" />
                 {[
                   ["Nama", name],
-                  ["NIM", nim],
+                  ["Username", nim],
                   ["Password", String(pwd)],
-                  ["Prodi", String(prodi)],
+                  ["Jurusan", String(prodi)],
                   ["Kelas", String(kelas)],
                   ["Sesi / Ruang", `${sesi} / ${ruang}`],
                 ].map(([k, v]) => (
@@ -377,8 +377,8 @@ export default function ProfilePage() {
                   <Row label="Status">
                     <Chip>{me.student.status ? "Aktif" : "Nonaktif"}</Chip>
                   </Row>
-                  <Row label="NIM">{me.student.nim ?? "—"}</Row>
-                  <Row label="Sekolah / Prodi">
+                  <Row label="Username">{me.student.nim ?? "—"}</Row>
+                  <Row label="Sekolah / Jurusan">
                     {me.student.school?.name ?? me.student.school_name ?? "—"}
                   </Row>
                   <Row label="Kelas">
@@ -396,7 +396,7 @@ export default function ProfilePage() {
               )}
             </section>
 
-            {/* Kartu Mahasiswa + tombol print */}
+            {/* Kartu Siswa + tombol print */}
             {me.student ? <StudentCard me={me} /> : null}
           </div>
         )}

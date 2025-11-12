@@ -51,7 +51,7 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
   // mode
   const isEdit = Boolean(initialData?.id);
 
-  // ====== Prodi (School) ====== 🆕
+  // ====== Jurusan (School) ====== 🆕
   const [schoolId, setSchoolId] = useState<number | null>(
     initialData?.school_id ?? null
   );
@@ -254,7 +254,7 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
         await Swal.fire({
           icon: "warning",
           title: "Lengkapi Data",
-          text: "Prodi, Subject, Sub Subject, dan Title wajib diisi.",
+          text: "Jurusan, Subject, Sub Subject, dan Title wajib diisi.",
         });
         return;
       }
@@ -287,9 +287,9 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
 
   return (
     <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-      {/* Prodi (School) 🆕 */}
+      {/* Jurusan (School) 🆕 */}
       <div>
-        <Label className="pb-2">Prodi</Label>
+        <Label className="pb-2">Jurusan</Label>
         <Combobox<School>
           value={schoolId}
           onChange={(v) => setSchoolId(v)}
@@ -300,7 +300,7 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
           onOpenRefetch={refetchSchool}
           data={schoolOptions}
           isLoading={loadingSchool}
-          placeholder="Pilih Prodi"
+          placeholder="Pilih Jurusan"
           getOptionLabel={getOptionLabelSchool}
         />
       </div>
@@ -325,7 +325,7 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
         </div>
 
         <div>
-          <Label className="pb-2">Mata Kuliah</Label>
+          <Label className="pb-2">Mata Pelajaran</Label>
           <div
             aria-disabled={!subEnabled}
             className={!subEnabled ? "pointer-events-none opacity-60" : ""}
@@ -346,7 +346,7 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
               isLoading={loadingSub}
               placeholder={
                 subEnabled
-                  ? "Pilih Mata Kuliah"
+                  ? "Pilih Mata Pelajaran"
                   : "Pilih Jurusan terlebih dahulu"
               }
               getOptionLabel={getOptionLabelSub}

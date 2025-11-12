@@ -193,7 +193,7 @@ export default function StudentsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  // ===== List Prodi & Kelas =====
+  // ===== List Jurusan & Kelas =====
   const { data: schoolListResp, isFetching: loadingSchools } =
     useGetSchoolListQuery({ page: 1, paginate: 100, search: schoolSearch });
   const { data: classListResp, isFetching: loadingClasses } =
@@ -450,7 +450,7 @@ export default function StudentsPage() {
       const name = pendingDelete.name;
       await remove(pendingDelete.id).unwrap();
       setPendingDelete(null);
-      alertSuccess("Berhasil Dihapus", `Mahasiswa "${name}" telah dihapus.`);
+      alertSuccess("Berhasil Dihapus", `Siswa "${name}" telah dihapus.`);
       refetch();
     } catch (err: unknown) {
       const info = extractPayload(err);
@@ -461,7 +461,7 @@ export default function StudentsPage() {
 
   const getSchoolLabel = (id: number | null): string =>
     id == null
-      ? "Semua Prodi"
+      ? "Semua Jurusan"
       : schoolOptions.find((s) => s.id === id)?.label ?? `ID: ${id}`;
   const getClassLabel = (id: number | null): string =>
     id == null
@@ -472,16 +472,16 @@ export default function StudentsPage() {
 
   return (
     <>
-      <SiteHeader title="Mahasiswa" />
+      <SiteHeader title="Siswa" />
       <main className="space-y-6 px-4 py-6">
         <Card className="border-border/70 shadow-sm">
           <CardHeader className="gap-3 md:flex md:items-center md:justify-between">
             <div>
               <CardTitle className="text-xl font-semibold tracking-tight">
-                Mahasiswa
+                Siswa
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Daftar akun <span className="font-medium">Mahasiswa</span>.
+                Daftar akun <span className="font-medium">Siswa</span>.
               </p>
             </div>
 
@@ -497,7 +497,7 @@ export default function StudentsPage() {
               <Button
                 variant="outline"
                 onClick={triggerImport}
-                title="Import Mahasiswa"
+                title="Import Siswa"
                 disabled={importing}
               >
                 <Upload
@@ -526,7 +526,7 @@ export default function StudentsPage() {
               <Button
                 variant="outline"
                 onClick={handleExport}
-                title="Export Mahasiswa"
+                title="Export Siswa"
                 disabled={exporting}
               >
                 <FileDown
@@ -579,7 +579,7 @@ export default function StudentsPage() {
                 />
               </div>
 
-              {/* Filter Prodi */}
+              {/* Filter Jurusan */}
               <div className="lg:col-span-3">
                 <Combobox
                   value={schoolId}
@@ -646,8 +646,8 @@ export default function StudentsPage() {
                   <TableHeader className="sticky top-0 bg-muted/40 backdrop-blur supports-[backdrop-filter]:bg-muted/60">
                     <TableRow>
                       <TableHead className="w-[320px]">Akun</TableHead>
-                      <TableHead className="w-[320px]">NIM</TableHead>
-                      <TableHead className="w-[160px]">Prodi</TableHead>
+                      <TableHead className="w-[320px]">Username</TableHead>
+                      <TableHead className="w-[160px]">Jurusan</TableHead>
                       <TableHead className="w-[180px]">Kelas</TableHead>
                       <TableHead className="w-[160px]">Telepon</TableHead>
                       <TableHead className="w-[120px]">Status</TableHead>
@@ -917,7 +917,7 @@ export default function StudentsPage() {
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Hapus Mahasiswa?</AlertDialogTitle>
+              <AlertDialogTitle>Hapus Siswa?</AlertDialogTitle>
               <AlertDialogDescription>
                 Aksi ini tidak bisa dibatalkan. Item:
                 <span className="font-semibold"> {pendingDelete?.name}</span>

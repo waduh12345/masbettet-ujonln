@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Ujian Online",
-  description: "Ujian Online for better experience",
+  title: "Masbettet",
+  description: "Masbettet for better experience",
 };
 
 export default function RootLayout({

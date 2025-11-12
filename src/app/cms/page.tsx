@@ -22,7 +22,7 @@ export default function Page() {
   const stats = useMemo(
     () => [
       {
-        label: "Total Mahasiswa",
+        label: "Total Siswa",
         value: data?.total_students ?? 0,
         icon: Users2,
         hint: "Semua mahasiswa aktif",
@@ -40,7 +40,7 @@ export default function Page() {
         hint: "Modul pembelajaran",
       },
       {
-        label: "Total Mata Kuliah",
+        label: "Total Mata Pelajaran",
         value: data?.total_subject ?? 0,
         icon: GraduationCap,
         hint: "Master mata kuliah",
