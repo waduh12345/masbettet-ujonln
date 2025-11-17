@@ -1,0 +1,346 @@
+"use client";
+
+import { useMemo, type ReactNode } from "react";
+import { User2 } from "lucide-react";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { useGetParticipantHistoryListQuery } from "@/services/student/tryout.service";
+import type { ParticipantHistoryItem } from "@/types/student/tryout";
+import { useSession } from "next-auth/react";
+
+/** ===== Utils ===== */
+function formatDateTime(iso?: string | null): string {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    return new Intl.DateTimeFormat("id-ID", {
+      dateStyle: "long",
+      timeStyle: "medium",
+      timeZone: "Asia/Jakarta",
+    }).format(d);
+  } catch {
+    return iso ?? "—";
+  }
+}
+
+/** ===== Page ===== */
+export default function DashboardPage() {
+  const { data: session } = useSession();
+  const user = session?.user;
+  const nameUser = user?.name;
+  const emailUser = user?.email;
+
+  // query hanya jalan kalau user ada
+  const queryArg =
+    user != null
+      ? {
+          user_id: user.id,
+          paginate: 10,
+          orderBy: "updated_at" as const,
+        }
+      : skipToken;
+
+  const {
+    data: history,
+    isLoading,
+    isError,
+  } = useGetParticipantHistoryListQuery(queryArg);
+
+  // ambil 5 terbaru
+  const latestTop5 = useMemo(() => {
+    const items = (history?.data ?? []).slice();
+    const ts = (r: ParticipantHistoryItem): number => {
+      const pick =
+        r.updated_at ?? r.end_date ?? r.start_date ?? r.created_at ?? null;
+      return pick ? new Date(pick).getTime() : 0;
+    };
+    items.sort((a, b) => ts(b) - ts(a));
+    return items.slice(0, 5);
+  }, [history]);
+
+  const totalHistory = history?.total ?? 0;
+
+  if (!user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="rounded-2xl border bg-white/80 px-5 py-4 text-center shadow-sm">
+          <p className="text-sm text-zinc-700">
+            Kamu belum masuk. Silakan login agar data dashboard dapat dimuat
+            dari session.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.06),transparent_40%),radial-gradient(ellipse_at_bottom_right,rgba(56,189,248,0.06),transparent_40%)]">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 py-8 md:px-6">
+        {/* Welcome */}
+        <div className="rounded-2xl bg-white/80 p-4 ring-1 ring-zinc-100 shadow-sm backdrop-blur md:p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="inline-grid h-11 w-11 place-items-center rounded-xl bg-sky-500 text-white ring-1 ring-sky-200">
+                <User2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-lg font-semibold md:text-xl">
+                  Selamat Datang {nameUser}
+                </p>
+                <p className="truncate text-sm text-sky-700">{emailUser}</p>
+              </div>
+            </div>
+
+          </div>
+
+          {/* baris info */}
+          <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card
+              tone="sky"
+              title="Total Paket Saya"
+              value={String(totalHistory)}
+              subtitle="Riwayat pengerjaan"
+            />
+            <InfoCard
+              title="Aktivitas terbaru"
+              description="Daftar di bawah menampilkan 5 pengerjaan terakhir kamu."
+              tone="indigo"
+            />
+            <InfoCard
+              title="Tips"
+              description="Selesaikan ujian sampai akhir agar status menjadi selesai."
+              tone="zinc"
+            />
+          </div>
+        </div>
+
+        {/* Hasil Latihan Terbaru */}
+        <div className="rounded-2xl bg-white/80 ring-1 ring-zinc-100 shadow-sm backdrop-blur">
+          <div className="border-b border-zinc-100 px-4 py-3 md:px-6">
+            <h3 className="font-semibold text-zinc-900">
+              Hasil Latihan Terbaru
+            </h3>
+            <p className="text-xs text-zinc-500">
+              Menampilkan {latestTop5.length} aktivitas terakhir
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="bg-sky-50/60 text-zinc-700">
+                  <Th>Test</Th>
+                  <Th>Mulai</Th>
+                  <Th>Selesai</Th>
+                  <Th>Status</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading &&
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr
+                      key={`skeleton-${i}`}
+                      className={i % 2 ? "bg-zinc-50/40" : "bg-white/50"}
+                    >
+                      <Td>
+                        <div className="h-4 w-56 animate-pulse rounded bg-zinc-200" />
+                      </Td>
+                      <Td>
+                        <div className="h-4 w-40 animate-pulse rounded bg-zinc-200" />
+                      </Td>
+                      <Td>
+                        <div className="h-4 w-40 animate-pulse rounded bg-zinc-200" />
+                      </Td>
+                      <Td>
+                        <div className="h-5 w-16 animate-pulse rounded bg-zinc-200" />
+                      </Td>
+                    </tr>
+                  ))}
+
+                {isError && (
+                  <tr>
+                    <Td colSpan={4}>
+                      <span className="text-red-600">Gagal memuat data.</span>
+                    </Td>
+                  </tr>
+                )}
+
+                {!isLoading && !isError && latestTop5.length === 0 && (
+                  <tr>
+                    <Td colSpan={4}>
+                      <span className="text-zinc-600">
+                        Belum ada hasil latihan.
+                      </span>
+                    </Td>
+                  </tr>
+                )}
+
+                {!isLoading &&
+                  !isError &&
+                  latestTop5.map((r, i) => {
+                    const isDone = !!(r.end_date ?? r.updated_at);
+                    return (
+                      <tr
+                        key={r.id}
+                        className={i % 2 ? "bg-zinc-50/40" : "bg-white/50"}
+                      >
+                        <Td>
+                          <span className="inline-flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-indigo-500/70" />
+                            {r.test_details?.title ?? "—"}
+                          </span>
+                        </Td>
+                        <Td>{formatDateTime(r.start_date)}</Td>
+                        <Td>
+                          {formatDateTime(r.end_date ?? r.updated_at ?? null)}
+                        </Td>
+                        <Td>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                              isDone
+                                ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
+                                : "bg-amber-50 text-amber-700 ring-1 ring-amber-100"
+                            }`}
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full bg-current/70" />
+                            {isDone ? "Selesai" : "Sedang dikerjakan"}
+                          </span>
+                        </Td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** ===== UI bits ===== */
+function Card({
+  tone,
+  title,
+  value,
+  subtitle,
+  icon,
+}: {
+  tone: "sky" | "indigo" | "soft";
+  title: string;
+  value: string;
+  subtitle?: string;
+  icon?: ReactNode;
+}) {
+  const theme =
+    tone === "sky"
+      ? {
+          wrap: "bg-sky-100/70 ring-sky-200/70",
+          value: "text-sky-700",
+          chip: "bg-white/60 text-sky-700 ring-1 ring-white/70",
+        }
+      : tone === "indigo"
+      ? {
+          wrap: "bg-indigo-700 text-white ring-indigo-800/60",
+          value: "text-white",
+          chip: "bg-white/10 text-white/90 ring-1 ring-white/20",
+        }
+      : {
+          wrap: "bg-zinc-100/70 ring-zinc-200/80",
+          value: "text-zinc-900",
+          chip: "bg-sky-600/10 text-sky-700 ring-1 ring-sky-600/20",
+        };
+
+  return (
+    <div className={`rounded-2xl p-4 ring-1 shadow-sm ${theme.wrap}`}>
+      <div className="flex items-start gap-3">
+        <div className="flex-1">
+          <p className="text-sm/5 font-medium opacity-80">{title}</p>
+          <div className={`mt-1 text-4xl font-semibold ${theme.value}`}>
+            {value}
+          </div>
+          {subtitle && <p className="mt-1 text-xs opacity-80">{subtitle}</p>}
+        </div>
+        {icon && <div className={`rounded-xl p-2 ${theme.chip}`}>{icon}</div>}
+      </div>
+    </div>
+  );
+}
+
+function InfoCard({
+  title,
+  description,
+  tone = "sky",
+}: {
+  title: string;
+  description: string;
+  tone?: "sky" | "indigo" | "zinc";
+}) {
+  const toneMap: Record<
+    typeof tone,
+    { wrap: string; title: string; desc: string }
+  > = {
+    sky: {
+      wrap: "bg-sky-50/80 ring-1 ring-sky-100",
+      title: "text-sky-900",
+      desc: "text-sky-700/80",
+    },
+    indigo: {
+      wrap: "bg-indigo-50/80 ring-1 ring-indigo-100",
+      title: "text-indigo-900",
+      desc: "text-indigo-700/80",
+    },
+    zinc: {
+      wrap: "bg-zinc-50/80 ring-1 ring-zinc-100",
+      title: "text-zinc-900",
+      desc: "text-zinc-700/80",
+    },
+  };
+
+  const t = toneMap[tone];
+
+  return (
+    <div className={`rounded-2xl p-4 ${t.wrap}`}>
+      <p className={`text-sm font-semibold ${t.title}`}>{title}</p>
+      <p className={`mt-1 text-xs leading-relaxed ${t.desc}`}>{description}</p>
+    </div>
+  );
+}
+
+function Th({
+  children,
+  align = "left",
+}: {
+  children: ReactNode;
+  align?: "left" | "right";
+}) {
+  return (
+    <th
+      className={`px-4 py-3 text-xs font-semibold uppercase tracking-wide ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      {children}
+    </th>
+  );
+}
+
+function Td({
+  children,
+  align = "left",
+  colSpan,
+}: {
+  children: ReactNode;
+  align?: "left" | "right";
+  colSpan?: number;
+}) {
+  return (
+    <td
+      colSpan={colSpan}
+      className={`px-4 py-3 text-zinc-700 ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      {children}
+    </td>
+  );
+}
