@@ -57,7 +57,7 @@ type TestRow = Test & {
 };
 
 type TestPayload = {
-  school_id: number;
+  school_id: number[];
   title: string;
   sub_title: string | null;
   shuffle_questions: boolean | number;
@@ -80,7 +80,7 @@ type TestPayload = {
 };
 
 const emptyForm: FormState = {
-  school_id: 0,
+  school_id: [],
   title: "",
   sub_title: "",
   slug: "",
@@ -180,7 +180,11 @@ export default function TryoutPage() {
   const [monitoringTest, setMonitoringTest] = useState<TestRow | null>(null);
 
   const toForm = (t: TestRow): FormState => ({
-    school_id: t.school_id,
+    school_id: Array.isArray(t.school_id)
+      ? t.school_id
+      : t.school_id !== null && t.school_id !== undefined
+      ? [t.school_id]
+      : [],
     title: t.title,
     sub_title: t.sub_title ?? "",
     slug: t.slug ?? "",
@@ -477,7 +481,12 @@ export default function TryoutPage() {
                               {t.sub_title || "-"}
                             </div>
                           </td>
-                          <td className="p-3">{t.school_name}</td>
+                          <td className="p-3 min-w-[200px]">
+                            {(Array.isArray(t.schools) ? t.schools : [t.schools])
+                            .filter(Boolean)
+                            .map((s) => s && typeof s === "object" && "name" in s ? (s.name as string) : "-")
+                            .join(" | ")}
+                          </td>
                           <td className="p-3">{name}</td>
                           <td className="p-3">
                             {t.timer_type === "per_category" ? (

@@ -21,7 +21,23 @@ export interface Test {
   is_explanation_released: boolean;
   created_at: string;
   updated_at: string;
-  school_name: string;
+  schools?: Array<{
+    id: number;
+    name: string;
+    description: string | null;
+    status: boolean;
+    created_at: string;
+    updated_at: string;
+    district_id: string;
+    regency_id: string;
+    province_id: string;
+    village_id: string;
+    pivot: {
+      test_id: number;
+      school_id: number;
+    };
+  }>;
+  school_name?: string;
   status?: boolean | number;
   user_id: number | null;
   pengawas_name: string | null;
@@ -34,7 +50,7 @@ export type AssessmentType = string; // 'irt' | 'standard'
 
 // ===== Payload untuk CREATE/UPDATE ke backend =====
 export interface TestPayload {
-  school_id: number;
+  school_id: number[];
   title: string;
   sub_title: string | null;
   shuffle_questions: boolean | number;        // <- sesuai backend

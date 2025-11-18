@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combo-box";
+import { Badge } from "@/components/ui/badge"; // Import Badge untuk menampilkan sekolah yang sudah dipilih
+import { Loader2, X } from "lucide-react"; // Import X icon untuk menghapus sekolah
 
 import type { School } from "@/types/master/school";
 import type { Users } from "@/types/user";
@@ -22,7 +24,7 @@ export type AssessmentType = string;
 
 /** === Form shape === */
 export type FormState = {
-  school_id: number;
+  school_id: number[];
   title: string;
   sub_title: string;
   slug: string;
@@ -85,6 +87,7 @@ export default function TryoutForm({
   onSubmit,
 }: Props) {
   const [form, setForm] = React.useState<FormState>(initial);
+  const [newSchoolId, setNewSchoolId] = React.useState<number | null>(null);
 
   // Jurusan
   const [schoolSearch, setSchoolSearch] = React.useState<string>("");
@@ -93,7 +96,20 @@ export default function TryoutForm({
       { page: 1, paginate: 30, search: schoolSearch },
       { refetchOnMountOrArgChange: true }
     );
-  const schools: School[] = schoolListResp?.data ?? [];
+  
+  // Semua sekolah yang tersedia
+  const allSchools: School[] = schoolListResp?.data ?? [];
+  
+  // Sekolah yang belum dipilih (untuk combobox)
+  const availableSchools = React.useMemo(() => {
+    const schoolIds = Array.isArray(form.school_id) ? form.school_id : [];
+    return allSchools.filter(s => !schoolIds.includes(s.id));
+  }, [allSchools, form.school_id]);
+
+  // Map untuk mendapatkan nama sekolah dari ID
+  const schoolMap = React.useMemo(() => {
+      return new Map(allSchools.map(s => [s.id, s.name]));
+  }, [allSchools]);
 
   // Pengawas (role_id = 3)
   const [pengawasSearch, setPengawasSearch] = React.useState<string>("");
@@ -138,6 +154,25 @@ export default function TryoutForm({
     await onSubmit(form);
   };
 
+  // Fungsi untuk menambahkan sekolah yang dipilih
+  const handleAddSchool = () => {
+    if (newSchoolId) {
+      setForm(prev => ({
+        ...prev,
+        school_id: [...new Set([...(Array.isArray(prev.school_id) ? prev.school_id : []), newSchoolId])], // Tambahkan & pastikan unik
+      }));
+      setNewSchoolId(null); // Reset Combobox
+    }
+  };
+
+  // Fungsi untuk menghapus sekolah dari list
+  const handleRemoveSchool = (id: number) => {
+    setForm(prev => ({
+        ...prev,
+        school_id: prev.school_id.filter(sId => sId !== id),
+    }));
+  };
+
   const handleRTChange = React.useCallback((html: string) => {
     setForm((prev) => ({ ...prev, description: html }));
   }, []);
@@ -147,17 +182,51 @@ export default function TryoutForm({
       {/* Kiri */}
       <div className="space-y-3">
         <div>
-          <Label>Jurusan</Label>
+          <Label>Jurusan * (Bisa pilih lebih dari satu)</Label>
           <div className="h-2" />
-          <Combobox<School>
-            value={form.school_id}
-            onChange={(value) => setForm({ ...form, school_id: value })}
-            onSearchChange={setSchoolSearch}
-            data={schools}
-            isLoading={loadingSchools}
-            placeholder="Pilih Jurusan"
-            getOptionLabel={(s) => s.name}
-          />
+          
+          {/* List Sekolah yang Sudah Dipilih */}
+          <div className="mb-3 flex flex-wrap gap-2 min-h-[38px] items-center rounded-md border p-2 bg-zinc-50">
+            {form.school_id.length > 0 ? (
+                form.school_id.map(id => (
+                    <Badge key={id} variant="default" className="bg-sky-500 hover:bg-sky-600">
+                        {schoolMap.get(id) ?? `ID:${id}`}
+                        <button 
+                            type="button" 
+                            onClick={() => handleRemoveSchool(id)}
+                            className="ml-1 rounded-full p-0.5 hover:bg-white/30 transition"
+                        >
+                            <X className="h-3 w-3" />
+                        </button>
+                    </Badge>
+                ))
+            ) : (
+                <span className="text-sm text-zinc-500">Belum ada sekolah dipilih.</span>
+            )}
+          </div>
+
+          {/* Combobox untuk Menambah Sekolah Baru */}
+          <div className="flex gap-2">
+            <div className="flex-1">
+                <Combobox<School>
+                    value={newSchoolId}
+                    onChange={(value) => setNewSchoolId(value)}
+                    onSearchChange={setSchoolSearch}
+                    data={availableSchools} // Hanya tampilkan yang belum dipilih
+                    isLoading={loadingSchools}
+                    placeholder="Pilih Sekolah untuk ditambahkan"
+                    getOptionLabel={(s) => s.name}
+                />
+            </div>
+            <button 
+                type="button"
+                onClick={handleAddSchool}
+                disabled={!newSchoolId}
+                className="shrink-0"
+            >
+                Tambah
+            </button>
+          </div>
         </div>
 
         <div>
@@ -335,6 +404,9 @@ export default function TryoutForm({
           Batal
         </Button>
         <Button onClick={handleSubmit} disabled={submitting}>
+          {submitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
           Simpan
         </Button>
       </div>

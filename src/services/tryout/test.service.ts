@@ -106,8 +106,8 @@ export const testApi = apiSlice.injectEndpoints({
 
         // 🆕 jika ada school_id, pakai pola searchBySpecific=school_id & search=<id>
         if (typeof school_id === "number") {
-          qs.set("searchBySpecific", "school_id");
-          qs.set("search", String(school_id));
+          // qs.set("searchBySpecific", "school_id");
+          qs.set("school_id", String(school_id));
         } else {
           // fallback ke perilaku lama
           if (search && search.trim()) qs.set("search", search.trim());
