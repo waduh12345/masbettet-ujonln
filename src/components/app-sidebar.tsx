@@ -9,6 +9,7 @@ import {
   IconDashboard,
   IconDatabase,
   IconFolderQuestion,
+  IconInfoCircle,
   IconLayoutDashboard,
   IconSettings,
   IconUserCog,
@@ -75,6 +76,11 @@ const NAV_BY_ROLE: Record<RoleName, MenuBundle> = {
         title: "Dashboard",
         url: "/cms/dashboard",
         icon: IconLayoutDashboard,
+      },
+      {
+        title: "Pengumuman",
+        url: "/cms/announcements",
+        icon: IconInfoCircle,
       },
       {
         title: "Data Siswa",
