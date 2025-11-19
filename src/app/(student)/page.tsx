@@ -6,6 +6,7 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import { useGetParticipantHistoryListQuery } from "@/services/student/tryout.service";
 import type { ParticipantHistoryItem } from "@/types/student/tryout";
 import { useSession } from "next-auth/react";
+import AnnouncementCarousel from "@/components/announcements";
 
 /** ===== Utils ===== */
 function formatDateTime(iso?: string | null): string {
@@ -112,6 +113,8 @@ export default function DashboardPage() {
             />
           </div>
         </div>
+
+        <AnnouncementCarousel />
 
         {/* Hasil Latihan Terbaru */}
         <div className="rounded-2xl bg-white/80 ring-1 ring-zinc-100 shadow-sm backdrop-blur">
