@@ -646,7 +646,7 @@ export default function StudentsPage() {
                   <TableHeader className="sticky top-0 bg-muted/40 backdrop-blur supports-[backdrop-filter]:bg-muted/60">
                     <TableRow>
                       <TableHead className="w-[320px]">Akun</TableHead>
-                      <TableHead className="w-[320px]">Username</TableHead>
+                      <TableHead className="w-[320px]">NISN</TableHead>
                       <TableHead className="w-[160px]">Jurusan</TableHead>
                       <TableHead className="w-[180px]">Kelas</TableHead>
                       <TableHead className="w-[160px]">Telepon</TableHead>

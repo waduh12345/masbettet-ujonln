@@ -145,7 +145,7 @@ const NAV_BY_ROLE: Record<RoleName, MenuBundle> = {
         icon: IconDashboard,
       },
       {
-        title: "Masbettet",
+        title: "Ujian Online",
         url: "/cms/tryout",
         icon: IconZoomQuestion,
       },

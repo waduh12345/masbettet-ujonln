@@ -39,28 +39,21 @@ import {
 const SunEditor = dynamic(() => import("suneditor-react"), { ssr: false });
 
 const extractUrlFromResponse = (res: unknown): string => {
-  // 1. PERBAIKAN: Cek jika 'res' itu sendiri adalah string URL
-  if (typeof res === "string" && (res.startsWith("http") || res.startsWith("/"))) {
+  if (
+    typeof res === "string" &&
+    (res.startsWith("http") || res.startsWith("/"))
+  ) {
     return res;
   }
 
-  // 2. Lanjutkan logika lama jika 'res' adalah objek
   if (typeof res !== "object" || res === null) return "";
   const obj = res as Record<string, unknown>;
 
-  // { data: "https://..." }  <-- punyamu
   if (typeof obj.data === "string") return obj.data;
-
-  // { url: "..." }
   if (typeof obj.url === "string") return obj.url;
-
-  // { file_url: "..." }
   if (typeof obj.file_url === "string") return obj.file_url;
-
-  // { location: "..." }
   if (typeof obj.location === "string") return obj.location;
 
-  // { data: { url/file_url/location } }
   if (typeof obj.data === "object" && obj.data !== null) {
     const dataObj = obj.data as Record<string, unknown>;
     if (typeof dataObj.url === "string") return dataObj.url;
@@ -70,6 +63,42 @@ const extractUrlFromResponse = (res: unknown): string => {
 
   return "";
 };
+
+/* ===== DEFAULT OPTIONS + CLONE HELPERS ===== */
+
+const DEFAULT_OPTIONS_MC: MCOption[] = [
+  { option: "a", text: "", point: 0 },
+  { option: "b", text: "", point: 0 },
+  { option: "c", text: "", point: 0 },
+  { option: "d", text: "", point: 0 },
+  { option: "e", text: "", point: 0 },
+];
+
+const DEFAULT_OPTIONS_TF: MCOption[] = [
+  { option: "a", text: "True", point: 1 },
+  { option: "b", text: "False", point: 0 },
+];
+
+const DEFAULT_OPTIONS_MULTI: MCOption[] = [
+  { option: "a", text: "", point: 0 },
+  { option: "b", text: "", point: 0 },
+  { option: "c", text: "", point: 0 },
+];
+
+const DEFAULT_OPTIONS_CATEGORIZED: CategorizedOption[] = [
+  {
+    text: "",
+    point: 1,
+    accurate_label: "",
+    not_accurate_label: "",
+    accurate: false,
+    not_accurate: false,
+  },
+];
+
+const cloneMC = (list: MCOption[]): MCOption[] => list.map((o) => ({ ...o }));
+const cloneCat = (list: CategorizedOption[]): CategorizedOption[] =>
+  list.map((o) => ({ ...o }));
 
 type Props = {
   categories: CategoryQuestion[];
@@ -98,26 +127,21 @@ export default function QuestionsForm({
   const [answer, setAnswer] = useState<string>("");
   const [totalPoint, setTotalPoint] = useState<number>(5);
 
-  // options
-  const [optionsMC, setOptionsMC] = useState<MCOption[]>([
-    { option: "a", text: "", point: 0 },
-    { option: "b", text: "", point: 0 },
-    { option: "c", text: "", point: 0 },
-    { option: "d", text: "", point: 0 },
-    { option: "e", text: "", point: 0 },
-  ]);
-  const [optionsTF, setOptionsTF] = useState<MCOption[]>([
-    { option: "a", text: "True", point: 1 },
-    { option: "b", text: "False", point: 0 },
-  ]);
-  const [optionsMCMulti, setOptionsMCMulti] = useState<MCOption[]>([
-    { option: "a", text: "", point: 0 },
-    { option: "b", text: "", point: 0 },
-    { option: "c", text: "", point: 0 },
-  ]);
+  const editorKeyBase = isEdit && initial ? `q-${initial.id}` : "q-new";
+
+  // ===== OPTIONS STATE (pakai clone supaya nggak read-only) =====
+  const [optionsMC, setOptionsMC] = useState<MCOption[]>(() =>
+    cloneMC(DEFAULT_OPTIONS_MC)
+  );
+  const [optionsTF, setOptionsTF] = useState<MCOption[]>(() =>
+    cloneMC(DEFAULT_OPTIONS_TF)
+  );
+  const [optionsMCMulti, setOptionsMCMulti] = useState<MCOption[]>(() =>
+    cloneMC(DEFAULT_OPTIONS_MULTI)
+  );
   const [optionsCategorized, setOptionsCategorized] = useState<
     CategorizedOption[]
-  >([{ text: "", point: 1, accurate: false, not_accurate: false }]);
+  >(() => cloneCat(DEFAULT_OPTIONS_CATEGORIZED));
 
   // ===== Mutations =====
   const [createQuestion, { isLoading: creating }] = useCreateQuestionMutation();
@@ -126,17 +150,44 @@ export default function QuestionsForm({
   const submitting = creating || updating;
 
   // ===== Hydrate (edit) =====
+  const [hydrated, setHydrated] = useState(false);
+
   useEffect(() => {
-    if (!initial) return;
+    if (!initial || hydrated) return;
+
     setCategoryId(initial.question_category_id ?? defaultCategoryId ?? null);
     setQuestion(initial.question ?? "");
     setType(initial.type as QuestionType);
     setAnswer(initial.answer ?? "");
     setTotalPoint(initial.total_point ?? 5);
-    // kalau backend kirim options & explanation, isi di sini juga
-  }, [initial, defaultCategoryId]);
+    setExplanation(initial.explanation ?? "");
 
-  // ===== Upload handler untuk SunEditor (3 argumen, return false) =====
+    const rawOptions = (initial as unknown as { options?: unknown }).options;
+
+    if (Array.isArray(rawOptions)) {
+      if (initial.type === "multiple_choice") {
+        const cast = rawOptions as MCOption[];
+        setOptionsMC(cast.length ? cloneMC(cast) : cloneMC(DEFAULT_OPTIONS_MC));
+      } else if (initial.type === "true_false") {
+        const cast = rawOptions as MCOption[];
+        setOptionsTF(cast.length ? cloneMC(cast) : cloneMC(DEFAULT_OPTIONS_TF));
+      } else if (initial.type === "multiple_choice_multiple_answer") {
+        const cast = rawOptions as MCOption[];
+        setOptionsMCMulti(
+          cast.length ? cloneMC(cast) : cloneMC(DEFAULT_OPTIONS_MULTI)
+        );
+      } else if (initial.type === "multiple_choice_multiple_category") {
+        const cast = rawOptions as CategorizedOption[];
+        setOptionsCategorized(
+          cast.length ? cloneCat(cast) : cloneCat(DEFAULT_OPTIONS_CATEGORIZED)
+        );
+      }
+    }
+
+    setHydrated(true);
+  }, [initial, defaultCategoryId, hydrated]);
+
+  // ===== Upload handler =====
   const handleSunUpload = useCallback(
     (
       files: File[],
@@ -151,20 +202,13 @@ export default function QuestionsForm({
         uploadHandler({ errorMessage: "File tidak ditemukan" });
         return false;
       }
-      
-      // upload ke API kamu
+
       uploadFile(buildServiceUploadFormData({ file }))
         .unwrap()
         .then((res) => {
-          // Gunakan helper yang sudah di luar
           const url = extractUrlFromResponse(res);
-
           if (!url) {
-            // TAMBAHAN: Log untuk debugging
-            console.error(
-              "Gagal extract URL dari respon API. Respon:",
-              res
-            );
+            console.error("Gagal extract URL dari respon API. Respon:", res);
             uploadHandler({
               errorMessage:
                 "Upload berhasil tapi URL tidak ditemukan di response API. Cek console.",
@@ -172,7 +216,6 @@ export default function QuestionsForm({
             return;
           }
 
-          // kirim ke SunEditor
           uploadHandler({
             result: [
               {
@@ -184,14 +227,13 @@ export default function QuestionsForm({
           });
         })
         .catch((err: unknown) => {
-          console.error("Upload image gagal:", err); // TAMBAHAN: Log error
+          console.error("Upload image gagal:", err);
           uploadHandler({
             errorMessage:
               err instanceof Error ? err.message : "Upload gagal, coba lagi",
           });
         });
 
-      // PENTING: stop upload bawaan editor
       return false;
     },
     [uploadFile]
@@ -299,11 +341,13 @@ export default function QuestionsForm({
                       type="number"
                       className="w-24"
                       value={opt.point}
-                      onChange={(e) => {
-                        const v = [...state];
-                        v[idx].point = Number(e.target.value || 0);
-                        setState(v);
-                      }}
+                      onChange={(e) =>
+                        setState((prev) => {
+                          const v = prev.map((o) => ({ ...o }));
+                          v[idx].point = Number(e.target.value || 0);
+                          return v;
+                        })
+                      }
                     />
                   </div>
 
@@ -312,11 +356,13 @@ export default function QuestionsForm({
                       type="button"
                       size="icon"
                       variant="ghost"
-                      onClick={() => {
-                        const v = [...state];
-                        v.splice(idx, 1);
-                        setState(v);
-                      }}
+                      onClick={() =>
+                        setState((prev) => {
+                          const v = prev.map((o) => ({ ...o }));
+                          v.splice(idx, 1);
+                          return v;
+                        })
+                      }
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -325,12 +371,15 @@ export default function QuestionsForm({
 
                 <Label className="text-xs">Teks Opsi</Label>
                 <SunEditor
+                  key={`${editorKeyBase}-opt-${type}-${idx}`}
                   setContents={opt.text}
-                  onChange={(html: string) => {
-                    const v = [...state];
-                    v[idx].text = html;
-                    setState(v);
-                  }}
+                  onChange={(html: string) =>
+                    setState((prev) => {
+                      const v = prev.map((o) => ({ ...o }));
+                      v[idx].text = html;
+                      return v;
+                    })
+                  }
                   setOptions={{
                     minHeight: "120px",
                     maxHeight: "35vh",
@@ -352,10 +401,14 @@ export default function QuestionsForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  const nextKey = String.fromCharCode(97 + state.length);
-                  setState([...state, { option: nextKey, text: "", point: 0 }]);
-                }}
+                onClick={() =>
+                  setState((prev) => {
+                    const cloned = prev.map((o) => ({ ...o }));
+                    const nextKey = String.fromCharCode(97 + cloned.length);
+                    cloned.push({ option: nextKey, text: "", point: 0 });
+                    return cloned;
+                  })
+                }
               >
                 <Plus className="mr-2 h-4 w-4" /> Tambah Opsi
               </Button>
@@ -394,22 +447,26 @@ export default function QuestionsForm({
                       type="number"
                       className="w-24"
                       value={opt.point}
-                      onChange={(e) => {
-                        const v = [...optionsMCMulti];
-                        v[idx].point = Number(e.target.value || 0);
-                        setOptionsMCMulti(v);
-                      }}
+                      onChange={(e) =>
+                        setOptionsMCMulti((prev) => {
+                          const v = prev.map((o) => ({ ...o }));
+                          v[idx].point = Number(e.target.value || 0);
+                          return v;
+                        })
+                      }
                     />
                   </div>
                   <Button
                     type="button"
                     size="icon"
                     variant="ghost"
-                    onClick={() => {
-                      const v = [...optionsMCMulti];
-                      v.splice(idx, 1);
-                      setOptionsMCMulti(v);
-                    }}
+                    onClick={() =>
+                      setOptionsMCMulti((prev) => {
+                        const v = prev.map((o) => ({ ...o }));
+                        v.splice(idx, 1);
+                        return v;
+                      })
+                    }
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -417,12 +474,15 @@ export default function QuestionsForm({
 
                 <Label className="text-xs">Teks Opsi</Label>
                 <SunEditor
+                  key={`${editorKeyBase}-opt-${type}-${idx}`}
                   setContents={opt.text}
-                  onChange={(html: string) => {
-                    const v = [...optionsMCMulti];
-                    v[idx].text = html;
-                    setOptionsMCMulti(v);
-                  }}
+                  onChange={(html: string) =>
+                    setOptionsMCMulti((prev) => {
+                      const v = prev.map((o) => ({ ...o }));
+                      v[idx].text = html;
+                      return v;
+                    })
+                  }
                   setOptions={{
                     minHeight: "120px",
                     buttonList: [
@@ -442,13 +502,14 @@ export default function QuestionsForm({
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                const nextKey = String.fromCharCode(97 + optionsMCMulti.length);
-                setOptionsMCMulti([
-                  ...optionsMCMulti,
-                  { option: nextKey, text: "", point: 0 },
-                ]);
-              }}
+              onClick={() =>
+                setOptionsMCMulti((prev) => {
+                  const v = prev.map((o) => ({ ...o }));
+                  const nextKey = String.fromCharCode(97 + v.length);
+                  v.push({ option: nextKey, text: "", point: 0 });
+                  return v;
+                })
+              }
             >
               <Plus className="mr-2 h-4 w-4" /> Tambah Opsi
             </Button>
@@ -516,48 +577,56 @@ export default function QuestionsForm({
                       type="number"
                       className="w-24"
                       value={opt.point}
-                      onChange={(e) => {
-                        const v = [...optionsCategorized];
-                        v[idx].point = Number(e.target.value || 0);
-                        setOptionsCategorized(v);
-                      }}
+                      onChange={(e) =>
+                        setOptionsCategorized((prev) => {
+                          const v = prev.map((o) => ({ ...o }));
+                          v[idx].point = Number(e.target.value || 0);
+                          return v;
+                        })
+                      }
                     />
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={opt.accurate}
-                        onCheckedChange={(v) => {
-                          const arr = [...optionsCategorized];
-                          arr[idx].accurate = v;
-                          if (v) arr[idx].not_accurate = false;
-                          setOptionsCategorized(arr);
-                        }}
+                        onCheckedChange={(v) =>
+                          setOptionsCategorized((prev) => {
+                            const arr = prev.map((o) => ({ ...o }));
+                            arr[idx].accurate = v;
+                            if (v) arr[idx].not_accurate = false;
+                            return arr;
+                          })
+                        }
                       />
-                      <span className="text-sm">Akurat</span>
+                      <span className="text-sm">Benar</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={opt.not_accurate}
-                        onCheckedChange={(v) => {
-                          const arr = [...optionsCategorized];
-                          arr[idx].not_accurate = v;
-                          if (v) arr[idx].accurate = false;
-                          setOptionsCategorized(arr);
-                        }}
+                        onCheckedChange={(v) =>
+                          setOptionsCategorized((prev) => {
+                            const arr = prev.map((o) => ({ ...o }));
+                            arr[idx].not_accurate = v;
+                            if (v) arr[idx].accurate = false;
+                            return arr;
+                          })
+                        }
                       />
-                      <span className="text-sm">Tidak Akurat</span>
+                      <span className="text-sm">Salah</span>
                     </div>
 
                     <Button
                       type="button"
                       size="icon"
                       variant="ghost"
-                      onClick={() => {
-                        const arr = [...optionsCategorized];
-                        arr.splice(idx, 1);
-                        setOptionsCategorized(arr);
-                      }}
+                      onClick={() =>
+                        setOptionsCategorized((prev) => {
+                          const arr = prev.map((o) => ({ ...o }));
+                          arr.splice(idx, 1);
+                          return arr;
+                        })
+                      }
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -566,12 +635,15 @@ export default function QuestionsForm({
 
                 <Label className="text-xs">Teks</Label>
                 <SunEditor
+                  key={`${editorKeyBase}-opt-${type}-${idx}`}
                   setContents={opt.text}
-                  onChange={(html: string) => {
-                    const arr = [...optionsCategorized];
-                    arr[idx].text = html;
-                    setOptionsCategorized(arr);
-                  }}
+                  onChange={(html: string) =>
+                    setOptionsCategorized((prev) => {
+                      const arr = prev.map((o) => ({ ...o }));
+                      arr[idx].text = html;
+                      return arr;
+                    })
+                  }
                   setOptions={{
                     minHeight: "120px",
                     buttonList: [
@@ -585,6 +657,37 @@ export default function QuestionsForm({
                   onImageUploadBefore={handleSunUpload}
                   onVideoUploadBefore={handleSunUpload}
                 />
+
+                <div className="grid gap-2 mt-2">
+                  <Label className="text-xs">Label Benar</Label>
+                  <Input
+                    type="text"
+                    value={opt.accurate_label}
+                    onChange={(e) =>
+                      setOptionsCategorized((prev) => {
+                        const arr = prev.map((o) => ({ ...o }));
+                        arr[idx].accurate_label = e.target.value;
+                        return arr;
+                      })
+                    }
+                    placeholder="Label untuk Benar"
+                  />
+                </div>
+                <div className="grid gap-2 mt-2">
+                  <Label className="text-xs">Label Salah</Label>
+                  <Input
+                    type="text"
+                    value={opt.not_accurate_label}
+                    onChange={(e) =>
+                      setOptionsCategorized((prev) => {
+                        const arr = prev.map((o) => ({ ...o }));
+                        arr[idx].not_accurate_label = e.target.value;
+                        return arr;
+                      })
+                    }
+                    placeholder="Label untuk Salah"
+                  />
+                </div>
               </div>
             ))}
 
@@ -592,10 +695,18 @@ export default function QuestionsForm({
               type="button"
               variant="outline"
               onClick={() =>
-                setOptionsCategorized([
-                  ...optionsCategorized,
-                  { text: "", point: 1, accurate: false, not_accurate: false },
-                ])
+                setOptionsCategorized((prev) => {
+                  const arr = prev.map((o) => ({ ...o }));
+                  arr.push({
+                    text: "",
+                    point: 1,
+                    accurate_label: "",
+                    not_accurate_label: "",
+                    accurate: false,
+                    not_accurate: false,
+                  });
+                  return arr;
+                })
               }
             >
               <Plus className="mr-2 h-4 w-4" /> Tambah Item
@@ -643,10 +754,10 @@ export default function QuestionsForm({
             <SelectItem value="multiple_choice">Pilihan Ganda</SelectItem>
             <SelectItem value="essay">Essay</SelectItem>
             <SelectItem value="multiple_choice_multiple_answer">
-              Pilihan Ganda Banyak Jawaban
+              Pilihan Ganda Kompleks MCMA
             </SelectItem>
             <SelectItem value="multiple_choice_multiple_category">
-              Kategori
+              Pilihan Ganda Kompleks Kategori
             </SelectItem>
             <SelectItem value="true_false">True / False</SelectItem>
           </SelectContent>
@@ -657,6 +768,7 @@ export default function QuestionsForm({
       <div className="grid gap-2">
         <Label>Pertanyaan</Label>
         <SunEditor
+          key={`${editorKeyBase}-question`}
           setContents={question}
           onChange={setQuestion}
           setOptions={{
@@ -682,6 +794,7 @@ export default function QuestionsForm({
       <div className="grid gap-2">
         <Label>Penjelasan (opsional)</Label>
         <SunEditor
+          key={`${editorKeyBase}-explanation`}
           setContents={explanation}
           onChange={setExplanation}
           setOptions={{

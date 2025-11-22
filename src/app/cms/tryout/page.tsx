@@ -48,6 +48,7 @@ import TryoutForm, {
 } from "@/components/form-modal/tryout-admin-form";
 import { Combobox } from "@/components/ui/combo-box";
 import TryoutMonitoringDialog from "@/components/modal/tryout/monitoring-student";
+import { useSession } from "next-auth/react";
 
 type School = { id: number; name: string; email?: string };
 
@@ -121,6 +122,8 @@ export default function TryoutPage() {
   const [search, setSearch] = useState("");
   const [searchBySpecific, setSearchBySpecific] = useState("");
   const [exportingId, setExportingId] = useState<number | null>(null);
+  const { data: session } = useSession();
+  const userRole = session?.user?.roles[0]?.name;
 
   const [schoolId, setSchoolId] = useState<number | null>(null);
   const [schoolSearch, setSchoolSearch] = useState("");
@@ -368,9 +371,11 @@ export default function TryoutPage() {
               <Button variant="outline" onClick={() => refetch()}>
                 <RefreshCw className="mr-2 h-4 w-4" /> Refresh
               </Button>
-              <Button onClick={openCreate}>
-                <Plus className="mr-2 h-4 w-4" /> Buat Ujian Online
-              </Button>
+              {userRole !== "pengawas" && (
+                <Button onClick={openCreate}>
+                  <Plus className="mr-2 h-4 w-4" /> Buat Ujian Online
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -482,10 +487,17 @@ export default function TryoutPage() {
                             </div>
                           </td>
                           <td className="p-3 min-w-[200px]">
-                            {(Array.isArray(t.schools) ? t.schools : [t.schools])
-                            .filter(Boolean)
-                            .map((s) => s && typeof s === "object" && "name" in s ? (s.name as string) : "-")
-                            .join(" | ")}
+                            {(Array.isArray(t.schools)
+                              ? t.schools
+                              : [t.schools]
+                            )
+                              .filter(Boolean)
+                              .map((s) =>
+                                s && typeof s === "object" && "name" in s
+                                  ? (s.name as string)
+                                  : "-"
+                              )
+                              .join(" | ")}
                           </td>
                           <td className="p-3">{name}</td>
                           <td className="p-3">
@@ -510,13 +522,13 @@ export default function TryoutPage() {
                           <td className="p-3">
                             {t.end_date ? displayDate(t.end_date) : "-"}
                           </td>
-                            <td className="p-3">
+                          <td className="p-3">
                             {t.status === true ? (
                               <Badge variant="success">Aktif</Badge>
                             ) : (
                               <Badge variant="destructive">Non-aktif</Badge>
                             )}
-                            </td>
+                          </td>
                           <td className="p-3">
                             <div className="flex gap-1 justify-end">
                               <Link
@@ -550,18 +562,22 @@ export default function TryoutPage() {
                                 <FileDown className="h-4 w-4" />
                               </ActionIcon>
 
-                              <ActionIcon
-                                label="Edit"
-                                onClick={() => openEdit(t)}
-                              >
-                                <PenLine className="h-4 w-4" />
-                              </ActionIcon>
-                              <ActionIcon
-                                label="Hapus"
-                                onClick={() => onDelete(t.id, t.title)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </ActionIcon>
+                              {userRole !== "pengawas" && (
+                                <>
+                                  <ActionIcon
+                                    label="Edit"
+                                    onClick={() => openEdit(t)}
+                                  >
+                                    <PenLine className="h-4 w-4" />
+                                  </ActionIcon>
+                                  <ActionIcon
+                                    label="Hapus"
+                                    onClick={() => onDelete(t.id, t.title)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </ActionIcon>
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>

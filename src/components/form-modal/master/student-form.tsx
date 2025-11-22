@@ -342,11 +342,11 @@ export default function StudentForm({
 
               {/* name */}
               <div className="space-y-2">
-                <Label>Username</Label>
+                <Label>NISN</Label>
                 <Input
                   value={nim}
                   onChange={(e) => setNim(e.target.value)}
-                  placeholder="Username siswa"
+                  placeholder="NISN siswa"
                 />
               </div>
 
