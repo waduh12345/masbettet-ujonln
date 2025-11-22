@@ -128,7 +128,9 @@ function StudentCard({ me }: { me: Me }) {
 
       {/* Preview kartu di halaman */}
       <div className="overflow-hidden rounded-2xl border-2 border-border/70 bg-background shadow-sm">
-        <div className="relative bg-gradient-to-r from-sky-600 to-cyan-500 px-5 py-4 text-white">
+        <div className="relative bg-gradient-to-r from-green-700 to-green-500 px-5 py-4 text-white">
+          {" "}
+          {/* Green gradient */}
           <div className="absolute left-4 top-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 text-xs font-extrabold tracking-wider">
             <img src="/masbettet-logo.webp" alt="Logo" width="52" height="52" />
           </div>
