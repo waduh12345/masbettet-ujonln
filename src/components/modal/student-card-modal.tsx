@@ -30,7 +30,7 @@ type Props = {
 };
 
 /**
- * THEME WARNA (Hijau + Kuning, sesuai logo)
+ * THEME WARNA (Hijau sesuai logo yang diberikan)
  */
 export const CARD_STYLES = `
   /* Paksa browser mencetak warna & background */
@@ -68,10 +68,10 @@ export const CARD_STYLES = `
     height: 100%;
   }
 
-  /* HEADER: Hijau -> Kuning */
+  /* HEADER: Hijau sesuai dengan warna pada logo */
   .student-card-header {
     padding: 18px 22px;
-    background: linear-gradient(120deg, #52b788 0%, #f7b731 100%);
+    background: linear-gradient(120deg, #006400 0%, #228b22 100%);  /* Hijau gelap dan terang */
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -91,7 +91,7 @@ export const CARD_STYLES = `
     width: 52px;
     height: 52px;
     border-radius: 16px;
-    background: #52b788; /* Hijau untuk logo */
+    background: #006400; /* Hijau untuk logo */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -171,7 +171,7 @@ export const CARD_STYLES = `
   /* BODY: latar hijau muda */
   .student-card-body {
     padding: 18px 22px 16px 22px;
-    background: #f1f8e9; /* Latar hijau muda */
+    background: #e2f3e2;  /* Latar hijau muda */
   }
 
   .student-card-box {
@@ -236,8 +236,8 @@ export const CARD_STYLES = `
     width: 120px;
     height: 140px;
     border-radius: 18px;
-    background: linear-gradient(150deg, #52b788 0%, #006400 45%);
-    background-color: #52b788;
+    background: linear-gradient(150deg, #006400 0%, #228b22 45%);  /* Hijau gelap dan terang */
+    background-color: #006400;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -266,7 +266,7 @@ export const CARD_STYLES = `
     text-align: center;
   }
 
-  /* CHIP NOMOR PESERTA: oranye + hijau */
+  /* CHIP NOMOR PESERTA: hijau + oranye */
   .student-card-idchip {
     margin-top: 4px;
     padding: 6px 10px;
@@ -293,7 +293,6 @@ export const CARD_STYLES = `
     color: #ea580c;
   }
 
-  /* FOOTER */
   .student-card-footer {
     padding: 10px 22px 16px 22px;
     background: #f9fafb;
@@ -386,8 +385,6 @@ export default function StudentCardModal({
   const name = student?.name ?? "—";
   const kelas = student?.class_name ?? "—";
   const prodi = student?.school_name ?? "—";
-  // const sesi = student?.session ?? "—";
-  // const ruang = student?.room ?? "—";
   const nopeserta = "14";
 
   const buildCardInnerHTML = () => `
