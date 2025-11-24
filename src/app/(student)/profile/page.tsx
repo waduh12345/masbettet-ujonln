@@ -1,20 +1,25 @@
 "use client";
 
 import * as React from "react";
+import { useState } from "react";
 import {
   Mail,
   Phone,
   BadgeCheck,
   XCircle,
-  Shield,
   CalendarClock,
   User2,
   GraduationCap,
+  Loader2,
 } from "lucide-react";
 
-import { useGetMeQuery } from "@/services/auth.service";
+import { useGetMeQuery, useUpdateMeMutation } from "@/services/auth.service";
 import type { User, Role } from "@/types/user";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
+import { FileInput } from "@/components/ui/file-input";
 
 type School = {
   id: number;
@@ -50,6 +55,7 @@ type Student = {
 
   school_name?: string | null;
   class_name?: string | null;
+  image: File | string | null;
 
   school?: School;
   class?: ClassInfo;
@@ -116,6 +122,7 @@ function StudentCard({ me }: { me: Me }) {
   const name = me.name ?? "—";
   const kelas = s?.class_name ?? s?.class?.name ?? "—";
   const prodi = s?.school_name ?? s?.school?.name ?? "—";
+  const image = me.image ?? null;
 
   return (
     <section className="rounded-2xl bg-white/90 p-5 ring-1 ring-zinc-200 shadow-sm md:col-span-2">
@@ -164,8 +171,12 @@ function StudentCard({ me }: { me: Me }) {
                 ))}
               </div>
               <div className="shrink-0">
-                <div className="flex h-28 w-28 items-center justify-center rounded-2xl bg-foreground text-background shadow-lg ring-1 ring-border/60">
-                  <GraduationCap className="h-10 w-10" />
+                <div className="flex h-32 w-28 items-center justify-center rounded-2xl bg-foreground text-background shadow-lg ring-1 ring-border/60">
+                  <img
+                    src={image ?? ""}
+                    alt="Avatar"
+                    className="object-cover w-full h-full rounded-2xl"
+                  />
                 </div>
               </div>
             </div>
@@ -186,6 +197,67 @@ export default function ProfilePage() {
   const { data, isLoading, isError, refetch } = useGetMeQuery();
 
   const me = data as unknown as Me | undefined;
+
+  const [updateMe] = useUpdateMeMutation(); // Hook for mutation
+
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    image: null as File | null,
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      image: e.target.files ? e.target.files[0] : null,
+    });
+  };
+
+  const handleSubmit = async () => {
+    const formToSubmit = new FormData();
+    formToSubmit.append("name", formData.name);
+    formToSubmit.append("phone", formData.phone);
+    formToSubmit.append("email", formData.email);
+    if (formData.image) formToSubmit.append("image", formData.image);
+
+    try {
+      await updateMe(formToSubmit); // Trigger the mutation
+      setIsModalOpen(false); // Close the modal after submission
+    } catch (error) {
+      console.error("Error updating profile", error);
+    }
+  };
+
+  const openModal = () => {
+    // Populate the modal with existing data
+    setFormData({
+      name: data?.name ?? "",
+      phone: data?.phone ?? "",
+      email: data?.email ?? "",
+      image: null, // We can handle the image separately
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  if (isLoading)
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin" />
+        Loading...
+      </div>
+    );
+  if (isError) return <div>Error loading profile</div>;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_left,rgba(14,165,233,0.06),transparent_40%),radial-gradient(ellipse_at_bottom_right,rgba(99,102,241,0.06),transparent_40%)]">
@@ -228,10 +300,9 @@ export default function ProfilePage() {
               <div className="mb-4 flex flex-wrap items-center gap-2">
                 <h2 className="text-lg font-semibold">Informasi Akun</h2>
                 <div className="ml-auto flex items-center gap-2">
-                  <Chip>
-                    <Shield className="mr-1 h-3.5 w-3.5" />
-                    ID: {me.id}
-                  </Chip>
+                  <Button variant="skyblue" onClick={openModal}>
+                    Edit
+                  </Button>
                   {typeof me.status !== "undefined" ? (
                     <Chip>{me.status ? "Aktif" : "Nonaktif"}</Chip>
                   ) : null}
@@ -307,6 +378,50 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Edit Profile Modal */}
+      {isModalOpen && (
+        <Modal onClose={closeModal}>
+          <form onSubmit={handleSubmit}>
+            <div>
+              <label>Name</label>
+              <Input
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Enter your name"
+              />
+            </div>
+            <div>
+              <label>Phone</label>
+              <Input
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="Enter your phone number"
+              />
+            </div>
+            <div>
+              <label>Email</label>
+              <Input
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Enter your email"
+              />
+            </div>
+            <div>
+              <FileInput onChange={handleFileChange} />
+            </div>
+            <div className="mt-2 flex gap-2">
+              <Button type="submit">Save Changes</Button>
+              <Button type="button" onClick={closeModal}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

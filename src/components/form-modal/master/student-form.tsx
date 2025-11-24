@@ -55,6 +55,7 @@ type StudentDetailApi = {
   id: number;
   user_id: number;
   nim: number | string;
+  participant_number: string | null;
   school_id: number | null;
   class_id: number | null;
   status: boolean;
@@ -97,6 +98,7 @@ export default function StudentForm({
   );
   const [classId, setClassId] = React.useState<number | null>(defaultClassId);
   const [name, setName] = React.useState<string>("");
+  const [noPeserta, setNoPeserta] = React.useState<string>("");
   const [nim, setNim] = React.useState<number | string>("");
   const [email, setEmail] = React.useState<string>("");
   const [phone, setPhone] = React.useState<string>("");
@@ -109,6 +111,7 @@ export default function StudentForm({
     setSchoolId(student.school_id ?? null);
     setClassId(student.class_id ?? null);
     setName(student.user?.name ?? "");
+    setNoPeserta(student.participant_number ?? "");
     setNim(student.nim ?? "");
     setEmail(student.user?.email ?? "");
     setPhone(student.user?.phone ?? ("" as string));
@@ -215,7 +218,8 @@ export default function StudentForm({
         const payload: {
           school_id?: number;
           nim?: number | string;
-          class_id?: number;
+          participant_number: string;
+          class_id?: number; 
           name?: string;
           email?: string;
           phone?: string | null;
@@ -225,6 +229,7 @@ export default function StudentForm({
           password_confirmation?: string;
         } = {
           school_id: schoolId ?? undefined,
+          participant_number: noPeserta ?? "",
           nim: nim ?? undefined,
           class_id: classId ?? undefined,
           name: name.trim(),
@@ -311,7 +316,7 @@ export default function StudentForm({
               Memuat data...
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto">
               {/* school */}
               <div className="space-y-2">
                 <Label>Jurusan</Label>
@@ -356,6 +361,15 @@ export default function StudentForm({
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  placeholder="Nama siswa"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Nomer Peserta</Label>
+                <Input
+                  value={noPeserta}
+                  onChange={(e) => setNoPeserta(e.target.value)}
                   placeholder="Nama siswa"
                 />
               </div>

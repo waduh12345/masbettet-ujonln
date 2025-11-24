@@ -6,6 +6,7 @@ export interface Student {
   user_id: number;
   nim: number | string;
   school_id: number;
+  participant_number: string | null;
   status: boolean | number;
   created_at: string;
   updated_at: string;

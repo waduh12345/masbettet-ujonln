@@ -54,8 +54,23 @@ export const authApi = apiSlice.injectEndpoints({
             ]
           : [{ type: "User" as const, id: "ME" }],
     }),
+
+    // ✅ UPDATE User Info using FormData (PUT via POST + _method=PUT)
+    updateMe: builder.mutation<User, FormData>({
+      query: (formData) => ({
+        url: "/me?_method=PUT",
+        method: "POST",
+        body: formData,
+      }),
+      transformResponse: (response: {
+        code: number;
+        message: string;
+        data: User;
+      }) => response.data,
+      invalidatesTags: [{ type: "User", id: "ME" }],
+    }),
   }),
   overrideExisting: false,
 });
 
-export const { useLoginMutation, useLogoutMutation, useGetMeQuery } = authApi;
+export const { useLoginMutation, useLogoutMutation, useGetMeQuery, useUpdateMeMutation } = authApi;

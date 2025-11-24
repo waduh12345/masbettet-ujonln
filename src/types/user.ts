@@ -25,6 +25,7 @@ export interface User {
   roles: Role[];
   // opsional – jika backend punya status
   status?: boolean | number;
+  image: File | string | null;
 }
 
 export type Users = User;

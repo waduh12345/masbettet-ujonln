@@ -795,6 +795,7 @@ export default function StudentsPage() {
                                   phone: u.phone ?? null,
                                   school_name: u.school_name ?? null,
                                   class_name: u.class_name ?? null,
+                                  participant_number: u.participant_number ?? null,
                                 });
                                 setOpenCard(true);
                               }}

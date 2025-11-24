@@ -17,6 +17,7 @@ export type StudentLite = {
   email?: string | null;
   phone?: string | null;
   school_name?: string | null;
+  participant_number: string | null;
   class_name?: string | null;
   session?: string | number | null;
   room?: string | number | null;
@@ -385,7 +386,7 @@ export default function StudentCardModal({
   const name = student?.name ?? "—";
   const kelas = student?.class_name ?? "—";
   const prodi = student?.school_name ?? "—";
-  const nopeserta = "14";
+  const nopeserta = student?.participant_number ?? "—";
 
   const buildCardInnerHTML = () => `
     <div class="student-card-root">
