@@ -95,7 +95,7 @@ export type QuestionImportPayload = {
 
 /** URL template CSV bawaan dari requirement */
 export const QUESTION_IMPORT_TEMPLATE_URL =
-  "https://api-cbt.naditechno.id/question-import.csv";
+  "https://api-ujian.masbettet.sch.id/question-import.csv";
 
 /** ===== API ===== */
 export const questionsApi = apiSlice.injectEndpoints({
