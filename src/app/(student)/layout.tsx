@@ -6,7 +6,7 @@ const MY_MENUS: MenuBundle = {
     { title: "Home", url: "/", icon: "home" },
     // { title: "Jadwal", url: "/pelajaran", icon: "calendar" },
     { title: "LMS", url: "/lms", icon: "folders" },
-    { title: "Ujian Online", url: "/tryout", icon: "trophy" },
+    { title: "Tryout", url: "/tryout", icon: "trophy" },
   ],
   navSecondary: [{ title: "Profil", url: "/profile", icon: "user" }],
 };

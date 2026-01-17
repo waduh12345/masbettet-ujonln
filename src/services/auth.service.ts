@@ -1,6 +1,6 @@
 // services/auth.service.ts
 import { apiSlice } from "./base-query";
-import type { User } from "@/types/user";
+import type { Register, User } from "@/types/user";
 
 type ApiEnvelope<T> = {
   code: number;
@@ -55,22 +55,26 @@ export const authApi = apiSlice.injectEndpoints({
           : [{ type: "User" as const, id: "ME" }],
     }),
 
-    // ✅ UPDATE User Info using FormData (PUT via POST + _method=PUT)
-    updateMe: builder.mutation<User, FormData>({
-      query: (formData) => ({
-        url: "/me?_method=PUT",
+    // POST /register 
+    register: builder.mutation<
+      | { token: string; user: User }
+      | ApiEnvelope<{ token: string; user: User }>,
+      Register
+    >({
+      query: (payload) => ({
+        url: "/register",
         method: "POST",
-        body: formData,
+        body: payload,
       }),
-      transformResponse: (response: {
-        code: number;
-        message: string;
-        data: User;
-      }) => response.data,
       invalidatesTags: [{ type: "User", id: "ME" }],
     }),
   }),
   overrideExisting: false,
 });
 
-export const { useLoginMutation, useLogoutMutation, useGetMeQuery, useUpdateMeMutation } = authApi;
+export const {
+  useLoginMutation,
+  useLogoutMutation,
+  useGetMeQuery,
+  useRegisterMutation,
+} = authApi;

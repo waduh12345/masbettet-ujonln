@@ -1,3 +1,4 @@
+import { Student } from "@/types/student";
 import NextAuth, { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
@@ -9,6 +10,7 @@ declare module "next-auth" {
         id: number;
         name: string;
       }[];
+      student: Student;
     } & DefaultSession["user"];
   }
 
@@ -19,5 +21,6 @@ declare module "next-auth" {
       id: number;
       name: string;
     }[];
+    student: Student;
   }
 }

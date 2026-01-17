@@ -39,7 +39,7 @@ export type StudentExportPayload = Partial<{
 
 /** Template file URL (langsung siap digunakan untuk link download) */
 export const STUDENT_IMPORT_TEMPLATE_URL =
-  "https://api-ujian.masbettet.sch.id/student-import.csv";
+  "https://api-cbt.naditechno.id/student-import.csv";
 
 /** ================== SERVICE ================== */
 

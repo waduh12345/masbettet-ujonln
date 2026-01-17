@@ -74,7 +74,10 @@ import { SiteHeader } from "@/components/site-header";
 import { Combobox } from "@/components/ui/combo-box";
 
 import StudentForm from "@/components/form-modal/master/student-form";
-import StudentCardModal, { StudentLite } from "@/components/modal/student-card-modal";
+import StudentCardModal, {
+  StudentLite,
+} from "@/components/modal/student-card-modal";
+import StudentCardAllModal from "@/components/modal/student-card-all-modal";
 
 const ROLE_STUDENT_ID = 3;
 
@@ -184,6 +187,8 @@ export default function StudentsPage() {
     null
   );
 
+  const [openCardAll, setOpenCardAll] = useState(false);
+
   // File input for Import
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -193,7 +198,7 @@ export default function StudentsPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  // ===== List Jurusan & Kelas =====
+  // ===== List Prodi & Kelas =====
   const { data: schoolListResp, isFetching: loadingSchools } =
     useGetSchoolListQuery({ page: 1, paginate: 100, search: schoolSearch });
   const { data: classListResp, isFetching: loadingClasses } =
@@ -307,6 +312,30 @@ export default function StudentsPage() {
     searchBySpecific,
     searchInput,
   ]);
+
+  const studentsForPrintAll: StudentLite[] = useMemo(
+    () =>
+      rows.map((u) => {
+        const withExtra = u as StudentRead & {
+          session?: string | number | null;
+          room?: string | number | null;
+          password?: string | number | null;
+        };
+
+        return {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone ?? null,
+          school_name: u.school_name ?? null,
+          class_name: u.class_name ?? null,
+          session: withExtra.session ?? null,
+          room: withExtra.room ?? null,
+          password: withExtra.password ?? null,
+        };
+      }),
+    [rows]
+  );
 
   const start = rows.length ? (currentPage - 1) * paginate + 1 : 0;
   const end = rows.length ? (currentPage - 1) * paginate + rows.length : 0;
@@ -461,7 +490,7 @@ export default function StudentsPage() {
 
   const getSchoolLabel = (id: number | null): string =>
     id == null
-      ? "Semua Jurusan"
+      ? "Semua Sekolah"
       : schoolOptions.find((s) => s.id === id)?.label ?? `ID: ${id}`;
   const getClassLabel = (id: number | null): string =>
     id == null
@@ -485,7 +514,7 @@ export default function StudentsPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Import */}
               <input
                 ref={importInputRef}
@@ -547,6 +576,16 @@ export default function StudentsPage() {
 
               <Button
                 variant="outline"
+                onClick={() => setOpenCardAll(true)}
+                title="Cetak semua kartu siswa di halaman ini"
+                disabled={rows.length === 0}
+              >
+                <Printer className="mr-2 h-4 w-4" />
+                Cetak Semua
+              </Button>
+
+              <Button
+                variant="outline"
                 size="icon"
                 title="Refresh"
                 onClick={() => refetch()}
@@ -579,7 +618,7 @@ export default function StudentsPage() {
                 />
               </div>
 
-              {/* Filter Jurusan */}
+              {/* Filter Prodi */}
               <div className="lg:col-span-3">
                 <Combobox
                   value={schoolId}
@@ -646,10 +685,10 @@ export default function StudentsPage() {
                   <TableHeader className="sticky top-0 bg-muted/40 backdrop-blur supports-[backdrop-filter]:bg-muted/60">
                     <TableRow>
                       <TableHead className="w-[320px]">Akun</TableHead>
-                      <TableHead className="w-[320px]">NISN</TableHead>
-                      <TableHead className="w-[160px]">Jurusan</TableHead>
+                      <TableHead className="w-[160px]">Sekolah</TableHead>
                       <TableHead className="w-[180px]">Kelas</TableHead>
                       <TableHead className="w-[160px]">Telepon</TableHead>
+                      <TableHead className="w-[120px]">Tipe</TableHead>
                       <TableHead className="w-[120px]">Status</TableHead>
                       <TableHead className="text-right w-[120px]">
                         Aksi
@@ -682,6 +721,9 @@ export default function StudentsPage() {
                             </TableCell>
                             <TableCell>
                               <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-5 w-20 rounded-full" />
                             </TableCell>
                             <TableCell>
                               <Skeleton className="h-5 w-20 rounded-full" />
@@ -739,15 +781,8 @@ export default function StudentsPage() {
 
                         <TableCell>
                           <div className="flex items-center gap-1 text-sm">
-                            <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
-                            {u.nim}
-                          </div>
-                        </TableCell>
-
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-sm">
                             <GraduationCap className="h-3.5 w-3.5 text-muted-foreground" />
-                            {u.school_name}
+                            {u.school_name || u.sc_name || "-"}
                           </div>
                         </TableCell>
 
@@ -763,6 +798,19 @@ export default function StudentsPage() {
                             <Phone className="h-3.5 w-3.5 text-muted-foreground" />
                             {u.phone ?? "-"}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          {u.is_premium ? (
+                            <Badge className="gap-1">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Premium
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="gap-1">
+                              <XCircle className="h-3.5 w-3.5" />
+                              Free
+                            </Badge>
+                          )}
                         </TableCell>
 
                         <TableCell>
@@ -789,13 +837,11 @@ export default function StudentsPage() {
                               onClick={() => {
                                 setSelectedStudent({
                                   id: u.id,
-                                  nim: u.nim,
                                   name: u.name,
                                   email: u.email,
                                   phone: u.phone ?? null,
                                   school_name: u.school_name ?? null,
                                   class_name: u.class_name ?? null,
-                                  participant_number: u.participant_number ?? null,
                                 });
                                 setOpenCard(true);
                               }}
@@ -944,6 +990,12 @@ export default function StudentsPage() {
             if (!v) setSelectedStudent(null);
           }}
           student={selectedStudent}
+        />
+
+        <StudentCardAllModal
+          open={openCardAll}
+          onOpenChange={setOpenCardAll}
+          students={studentsForPrintAll}
         />
       </main>
     </>

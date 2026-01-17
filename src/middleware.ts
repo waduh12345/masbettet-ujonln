@@ -1,4 +1,3 @@
-// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
@@ -19,7 +18,16 @@ type TokenLike = {
 };
 
 // --- Helper
-const PUBLIC_PATHS = ["/login"];
+// Catatan: Pastikan "/login" ada di sini agar tidak terjadi infinite loop redirect
+const PUBLIC_PATHS = [
+  "/login",
+  "/home",
+  "/about-us",
+  "/service",
+  "/contact",
+  "/testimoni",
+  "/e-learning",
+];
 const ALWAYS_ALLOW_PREFIX = ["/api/auth", "/_next", "/static", "/images"];
 const ALWAYS_ALLOW_EXACT = ["/favicon.ico", "/robots.txt", "/sitemap.xml"];
 
@@ -40,11 +48,8 @@ function hasRole(token: TokenLike | null, roleName: string): boolean {
     return false;
   };
 
-  // kemungkinan token.role = "superadmin"
   if (typeof token.role === "string" && token.role === roleName) return true;
-  // kemungkinan token.roles = ["superadmin"] / [{ name: "superadmin" }]
   if (Array.isArray(token.roles) && token.roles.some(ok)) return true;
-  // kemungkinan token.user.roles = [...]
   if (Array.isArray(token.user?.roles) && token.user!.roles!.some(ok))
     return true;
 
@@ -53,6 +58,12 @@ function hasRole(token: TokenLike | null, roleName: string): boolean {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // 1. MODIFIKASI: Cek Root Path
+  // Jika user mengakses halaman utama ('/'), paksa ke '/login'
+  if (pathname === "/") {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
 
   // Bebaskan asset & route publik
   if (isAssetLike(pathname) || isPublic(pathname)) {
@@ -64,15 +75,18 @@ export async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   })) as TokenLike | null;
 
+  // 2. MODIFIKASI: Redirect jika tidak ada token
+  // Jika mencoba akses halaman privat tanpa token, lempar ke '/login'
   if (!token) {
+    // SEBELUMNYA: return NextResponse.redirect(new URL("/home", req.url));
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // ⬇️ di sini kuncinya: pengawas diperlakukan sama kayak superadmin
   const isSuperOrPengawas =
     hasRole(token, "superadmin") || hasRole(token, "pengawas");
   const isUser = hasRole(token, "user");
   const isCmsPath = pathname.startsWith("/cms");
+  const isStudentPath = pathname.startsWith("/student");
 
   // Aturan akses
   if (isSuperOrPengawas) {
@@ -84,9 +98,9 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isUser) {
-    // user biasa: tidak boleh ke /cms
-    if (isCmsPath) {
-      return NextResponse.redirect(new URL("/", req.url));
+    // user biasa: hanya boleh akses /student*
+    if (!isStudentPath) {
+      return NextResponse.redirect(new URL("/student", req.url));
     }
     return NextResponse.next();
   }

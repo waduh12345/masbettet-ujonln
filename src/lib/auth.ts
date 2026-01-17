@@ -67,6 +67,7 @@ export const authOptions: AuthOptions = {
           name: user.name,
           token: token,
           roles: user.roles || [],
+          student: user.student
         };
       },
     }),
@@ -79,6 +80,7 @@ export const authOptions: AuthOptions = {
         token.name = user.name;
         token.token = user.token;
         token.roles = user.roles;
+        token.student = user.student;
       }
       return token;
     },
@@ -87,6 +89,7 @@ export const authOptions: AuthOptions = {
         session.user.id = token.id as number;
         session.user.token = token.token as string;
         session.user.roles = token.roles as User["roles"];
+        session.user.student = token.student as User["student"]
       }
       return session;
     },

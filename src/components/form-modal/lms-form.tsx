@@ -10,7 +10,7 @@ import {
 
 import { useGetSubjectListQuery } from "@/services/master/mapel.service";
 import { useGetSubjectSubListQuery } from "@/services/master/submapel.service";
-import { useGetSchoolListQuery } from "@/services/master/school.service"; // 🆕 prodi
+// import { useGetSchoolListQuery } from "@/services/master/school.service";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,73 +41,73 @@ type SubjectSub = {
   subject_id: number;
 };
 
-type School = {
-  id: number;
-  name: string;
-  email?: string | null;
-};
+// type School = {
+//   id: number;
+//   name: string;
+//   email?: string | null;
+// };
 
 export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
   // mode
   const isEdit = Boolean(initialData?.id);
 
-  // ====== Jurusan (School) ====== 🆕
-  const [schoolId, setSchoolId] = useState<number | null>(
+  // ====== Prodi (School) ====== 🆕
+  const [schoolId] = useState<number | null>(
     initialData?.school_id ?? null
   );
-  const [schoolSearch, setSchoolSearch] = useState("");
+  // const [schoolSearch, setSchoolSearch] = useState("");
 
-  const {
-    data: schoolResp,
-    isFetching: loadingSchool,
-    refetch: refetchSchool,
-  } = useGetSchoolListQuery({
-    page: 1,
-    paginate: 50,
-    search: schoolSearch,
-  });
+  // const {
+  //   data: schoolResp,
+  //   isFetching: loadingSchool,
+  //   refetch: refetchSchool,
+  // } = useGetSchoolListQuery({
+  //   page: 1,
+  //   paginate: 50,
+  //   search: schoolSearch,
+  // });
 
-  const schoolsRaw: School[] = (
-    Array.isArray(schoolResp?.data) ? (schoolResp!.data as unknown[]) : []
-  )
-    .map((s: unknown): School | null => {
-      if (typeof s !== "object" || s === null) return null;
-      const r = s as Record<string, unknown>;
+  // const schoolsRaw: School[] = (
+  //   Array.isArray(schoolResp?.data) ? (schoolResp!.data as unknown[]) : []
+  // )
+  //   .map((s: unknown): School | null => {
+  //     if (typeof s !== "object" || s === null) return null;
+  //     const r = s as Record<string, unknown>;
 
-      const idRaw = r.id;
-      const idNum =
-        typeof idRaw === "number"
-          ? idRaw
-          : typeof idRaw === "string"
-          ? Number(idRaw)
-          : NaN;
-      if (!Number.isFinite(idNum)) return null;
+  //     const idRaw = r.id;
+  //     const idNum =
+  //       typeof idRaw === "number"
+  //         ? idRaw
+  //         : typeof idRaw === "string"
+  //         ? Number(idRaw)
+  //         : NaN;
+  //     if (!Number.isFinite(idNum)) return null;
 
-      const nameRaw = (r.name ?? r.school_name) as unknown;
-      const emailRaw = r.email as unknown;
+  //     const nameRaw = (r.name ?? r.school_name) as unknown;
+  //     const emailRaw = r.email as unknown;
 
-      return {
-        id: idNum,
-        name: typeof nameRaw === "string" ? nameRaw : "-",
-        email: typeof emailRaw === "string" ? emailRaw : null,
-      };
-    })
-    .filter((x): x is School => x !== null);
+  //     return {
+  //       id: idNum,
+  //       name: typeof nameRaw === "string" ? nameRaw : "-",
+  //       email: typeof emailRaw === "string" ? emailRaw : null,
+  //     };
+  //   })
+  //   .filter((x): x is School => x !== null);
 
   // fallback agar value terpilih muncul saat edit meski tidak di page 1
-  const schoolOptions = useMemo<School[]>(() => {
-    if (isEdit && schoolId && !schoolsRaw.some((s) => s.id === schoolId)) {
-      return [
-        {
-          id: schoolId,
-          name: initialData?.school_name ?? "—",
-          email: null,
-        },
-        ...schoolsRaw,
-      ];
-    }
-    return schoolsRaw;
-  }, [isEdit, schoolId, schoolsRaw, initialData]);
+  // const schoolOptions = useMemo<School[]>(() => {
+  //   if (isEdit && schoolId && !schoolsRaw.some((s) => s.id === schoolId)) {
+  //     return [
+  //       {
+  //         id: schoolId,
+  //         name: initialData?.school_name ?? "—",
+  //         email: null,
+  //       },
+  //       ...schoolsRaw,
+  //     ];
+  //   }
+  //   return schoolsRaw;
+  // }, [isEdit, schoolId, schoolsRaw, initialData]);
 
   // ====== Subject / Sub Subject ======
   const [subjectId, setSubjectId] = useState<number | null>(
@@ -231,7 +231,7 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
 
   const getOptionLabelSubject = (s: Subject) => `${s.code ?? "-"} — ${s.name}`;
   const getOptionLabelSub = (s: SubjectSub) => `${s.code ?? "-"} — ${s.name}`;
-  const getOptionLabelSchool = (s: School) => s.name; // 🆕
+  // const getOptionLabelSchool = (s: School) => s.name; // 🆕
 
   const buildFormData = (): FormData => {
     const fd = new FormData();
@@ -250,11 +250,11 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
   const onSubmit = async () => {
     // Validasi saat create: school, subject, sub, title wajib
     if (!isEdit) {
-      if (!schoolId || !subjectId || !subjectSubId || !title.trim()) {
+      if (!subjectId || !subjectSubId || !title.trim()) {
         await Swal.fire({
           icon: "warning",
           title: "Lengkapi Data",
-          text: "Jurusan, Subject, Sub Subject, dan Title wajib diisi.",
+          text: "Sekolah, Subject, Sub Subject, dan Title wajib diisi.",
         });
         return;
       }
@@ -287,9 +287,9 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
 
   return (
     <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-      {/* Jurusan (School) 🆕 */}
-      <div>
-        <Label className="pb-2">Jurusan</Label>
+      {/* Prodi (School) 🆕 */}
+      {/* <div>
+        <Label className="pb-2">Sekolah</Label>
         <Combobox<School>
           value={schoolId}
           onChange={(v) => setSchoolId(v)}
@@ -300,15 +300,15 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
           onOpenRefetch={refetchSchool}
           data={schoolOptions}
           isLoading={loadingSchool}
-          placeholder="Pilih Jurusan"
+          placeholder="Pilih Sekolah"
           getOptionLabel={getOptionLabelSchool}
         />
-      </div>
+      </div> */}
 
       {/* Subject & Sub Subject */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label className="pb-2">Jurusan</Label>
+          <Label className="pb-2">Mata Pelajaran</Label>
           <Combobox<Subject>
             value={subjectId}
             onChange={(v) => setSubjectId(v)}
@@ -319,13 +319,13 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
             onOpenRefetch={refetchSubject}
             data={subjectOptions}
             isLoading={loadingSubject}
-            placeholder="Pilih Jurusan"
+            placeholder="Pilih Mata Pelajaran"
             getOptionLabel={getOptionLabelSubject}
           />
         </div>
 
         <div>
-          <Label className="pb-2">Mata Pelajaran</Label>
+          <Label className="pb-2">Sub Mata Pelajaran</Label>
           <div
             aria-disabled={!subEnabled}
             className={!subEnabled ? "pointer-events-none opacity-60" : ""}
@@ -346,8 +346,8 @@ export default function LmsForm({ initialData, onSuccess, onCancel }: Props) {
               isLoading={loadingSub}
               placeholder={
                 subEnabled
-                  ? "Pilih Mata Pelajaran"
-                  : "Pilih Jurusan terlebih dahulu"
+                  ? "Pilih Sub Mata Pelajaran"
+                  : "Pilih Mata Pelajaran terlebih dahulu"
               }
               getOptionLabel={getOptionLabelSub}
             />

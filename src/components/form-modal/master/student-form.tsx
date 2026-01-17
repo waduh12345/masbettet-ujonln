@@ -49,13 +49,12 @@ type StudentUser = {
   phone_verified_at: string | null;
   created_at: string;
   updated_at: string;
+  is_premium: number; // Tambahkan is_premium
 };
 
 type StudentDetailApi = {
   id: number;
   user_id: number;
-  nim: number | string;
-  participant_number: string | null;
   school_id: number | null;
   class_id: number | null;
   status: boolean;
@@ -98,24 +97,24 @@ export default function StudentForm({
   );
   const [classId, setClassId] = React.useState<number | null>(defaultClassId);
   const [name, setName] = React.useState<string>("");
-  const [noPeserta, setNoPeserta] = React.useState<string>("");
-  const [nim, setNim] = React.useState<number | string>("");
   const [email, setEmail] = React.useState<string>("");
   const [phone, setPhone] = React.useState<string>("");
   const [password, setPassword] = React.useState<string>("");
   const [passwordConf, setPasswordConf] = React.useState<string>("");
   const [status, setStatus] = React.useState<boolean>(true);
+  // 💡 State baru untuk is_premium
+  const [isPremium, setIsPremium] = React.useState<boolean>(false); 
 
   React.useEffect(() => {
     if (!open || !isEdit || !student) return;
     setSchoolId(student.school_id ?? null);
     setClassId(student.class_id ?? null);
     setName(student.user?.name ?? "");
-    setNoPeserta(student.participant_number ?? "");
-    setNim(student.nim ?? "");
     setEmail(student.user?.email ?? "");
     setPhone(student.user?.phone ?? ("" as string));
     setStatus(Boolean(student.status));
+    // 💡 Sinkronisasi isPremium dari data user
+    setIsPremium(Boolean(student.user?.is_premium));
     setPassword("");
     setPasswordConf("");
   }, [open, isEdit, student]);
@@ -125,12 +124,12 @@ export default function StudentForm({
       setSchoolId(defaultSchoolId);
       setClassId(defaultClassId);
       setName("");
-      setNim("");
       setEmail("");
       setPhone("");
       setPassword("");
       setPasswordConf("");
       setStatus(true);
+      setIsPremium(false); // Reset isPremium saat create
     }
   }, [open, isEdit, defaultSchoolId, defaultClassId]);
 
@@ -160,8 +159,8 @@ export default function StudentForm({
     if (!schoolId) {
       void Swal.fire({
         icon: "warning",
-        title: "Pilih Jurusan",
-        text: "Field prodi wajib diisi.",
+        title: "Pilih Sekolah",
+        text: "Field Sekolah wajib diisi.",
       });
       return;
     }
@@ -191,6 +190,10 @@ export default function StudentForm({
       return;
     }
     
+    // Perbaikan: Nomor HP tidak wajib diisi jika edit dan dikosongkan
+    // Jika edit, phone diisi null jika inputnya kosong
+    const finalPhone = phone.trim() ? phone.trim() : null;
+    
     if (!isEdit) {
       if (!password) {
         void Swal.fire({ icon: "warning", title: "Password wajib diisi" });
@@ -217,9 +220,7 @@ export default function StudentForm({
       if (isEdit) {
         const payload: {
           school_id?: number;
-          nim?: number | string;
-          participant_number: string;
-          class_id?: number; 
+          class_id?: number;
           name?: string;
           email?: string;
           phone?: string | null;
@@ -227,16 +228,16 @@ export default function StudentForm({
           role_id?: number;
           password?: string;
           password_confirmation?: string;
+          is_premium?: number; // Tambahkan ke payload
         } = {
           school_id: schoolId ?? undefined,
-          participant_number: noPeserta ?? "",
-          nim: nim ?? undefined,
           class_id: classId ?? undefined,
           name: name.trim(),
           email: email.trim(),
-          phone: phone.trim() ? phone.trim() : null,
+          phone: finalPhone,
           status,
           role_id: ROLE_STUDENT_ID,
+          is_premium: isPremium ? 1 : 0, // Kirim sebagai 1 atau 0
         };
         if (password) {
           payload.password = password;
@@ -248,7 +249,6 @@ export default function StudentForm({
       } else {
         const payload = {
           school_id: schoolId!,
-          nim: nim!,
           class_id: classId!,
           name: name.trim(),
           email: email.trim(),
@@ -256,7 +256,8 @@ export default function StudentForm({
           password_confirmation: passwordConf,
           status,
           role_id: ROLE_STUDENT_ID,
-          phone: phone.trim() ? phone.trim() : null,
+          phone: finalPhone,
+          is_premium: isPremium ? 1 : 0, // Kirim sebagai 1 atau 0
         };
         await createStudent(payload).unwrap();
         onSuccess("create");
@@ -301,12 +302,12 @@ export default function StudentForm({
 
       <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
         <DialogContent
-          className="sm:max-w-lg z-[50]"
+          className="sm:max-w-lg z-[50] max-h-[95vh] overflow-y-auto"
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           onInteractOutside={handleInteractOutside}
         >
-          <DialogHeader>
+          <DialogHeader className="sticky top-0 bg-white/90 backdrop-blur-sm z-10 p-4 -mx-4 -mt-4 rounded-t-lg border-b">
             <DialogTitle>{isEdit ? "Edit Siswa" : "Tambah Siswa"}</DialogTitle>
           </DialogHeader>
 
@@ -316,61 +317,44 @@ export default function StudentForm({
               Memuat data...
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto">
-              {/* school */}
-              <div className="space-y-2">
-                <Label>Jurusan</Label>
-                <Combobox<School>
-                  value={schoolId}
-                  onChange={(v) => setSchoolId(v)}
-                  onSearchChange={setSchoolSearch}
-                  data={schools}
-                  isLoading={loadingSchools}
-                  placeholder="Pilih Jurusan"
-                  getOptionLabel={(s) => s.name}
-                />
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+              <div className="grid gap-4 sm:grid-cols-2 mt-2">
+                {/* school */}
+                <div className="space-y-2">
+                  <Label>Sekolah</Label>
+                  <Combobox<School>
+                    value={schoolId}
+                    onChange={(v) => setSchoolId(v)}
+                    onSearchChange={setSchoolSearch}
+                    data={schools}
+                    isLoading={loadingSchools}
+                    placeholder="Pilih Sekolah"
+                    getOptionLabel={(s) => s.name}
+                  />
+                </div>
 
-              {/* class */}
-              <div className="space-y-2">
-                <Label>Kelas</Label>
-                <Combobox<Class>
-                  value={classId}
-                  onChange={(v) => setClassId(v)}
-                  onSearchChange={setClassSearch}
-                  data={classes}
-                  isLoading={loadingClasses}
-                  placeholder="Pilih Kelas"
-                  getOptionLabel={(c) => c.name}
-                />
+                {/* class */}
+                <div className="space-y-2">
+                  <Label>Kelas</Label>
+                  <Combobox<Class>
+                    value={classId}
+                    onChange={(v) => setClassId(v)}
+                    onSearchChange={setClassSearch}
+                    data={classes}
+                    isLoading={loadingClasses}
+                    placeholder="Pilih Kelas"
+                    getOptionLabel={(c) => c.name}
+                  />
+                </div>
               </div>
-
-              {/* name */}
-              <div className="space-y-2">
-                <Label>NISN</Label>
-                <Input
-                  value={nim}
-                  onChange={(e) => setNim(e.target.value)}
-                  placeholder="NISN siswa"
-                />
-              </div>
-
               {/* name */}
               <div className="space-y-2">
                 <Label>Nama</Label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Nama siswa"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Nomer Peserta</Label>
-                <Input
-                  value={noPeserta}
-                  onChange={(e) => setNoPeserta(e.target.value)}
-                  placeholder="Nama siswa"
+                  placeholder="Nama Siswa"
+                  required
                 />
               </div>
 
@@ -382,15 +366,17 @@ export default function StudentForm({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="email@contoh.com"
+                  required
                 />
               </div>
 
               {/* phone */}
               <div className="space-y-2">
-                <Label>No. HP</Label>
+                <Label>No. HP{isEdit ? " (Kosongkan jika tidak ada)" : ""}</Label>
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  required={!isEdit}
                   placeholder="08xxxxxxxxxx"
                 />
               </div>
@@ -402,6 +388,7 @@ export default function StudentForm({
                   <Input
                     type="password"
                     value={password}
+                    required={!isEdit}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={
                       isEdit
@@ -417,6 +404,7 @@ export default function StudentForm({
                   <Input
                     type="password"
                     value={passwordConf}
+                    required={!isEdit}
                     onChange={(e) => setPasswordConf(e.target.value)}
                     placeholder={
                       isEdit
@@ -430,15 +418,31 @@ export default function StudentForm({
               {/* status */}
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div>
-                  <div className="text-sm font-medium">Status</div>
+                  <div className="text-sm font-medium">Status Akun</div>
                   <div className="text-xs text-muted-foreground">
                     Aktif/nonaktifkan akun siswa
                   </div>
                 </div>
                 <Switch checked={status} onCheckedChange={setStatus} />
               </div>
+              
+              {/* 💡 is_premium (Posisi dipaling bawah sebelum tombol aksi) */}
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <div className="text-sm font-medium">Status Premium</div>
+                  <div className="text-xs text-muted-foreground">
+                    Atur status akses premium siswa (Tidak Aktif: Free, Aktif: Premium)
+                  </div>
+                </div>
+                <Switch 
+                    checked={isPremium} 
+                    onCheckedChange={setIsPremium} 
+                    // Tampilkan label Free/Premium secara visual
+                    aria-label={isPremium ? "Premium (1)" : "Free (0)"}
+                />
+              </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2 pt-2 sticky bottom-0 bg-white/90 backdrop-blur-sm p-4 -mx-4 rounded-b-lg border-t">
                 <Button
                   type="button"
                   variant="outline"

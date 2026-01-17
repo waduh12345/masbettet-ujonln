@@ -130,17 +130,17 @@ export default function TryoutListPage() {
         <div className="pointer-events-none absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
         <div className="relative">
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-            Ujian Online
+            Tryout
           </h1>
           <p className="mt-1 text-sm text-white/90">
-            Pilih paket ujian online dan mulai kerjakan secara real-time.
+            Pilih paket tryout dan mulai kerjakan secara real-time.
           </p>
 
           <div className="mt-4 max-w-xl">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-80" />
               <Input
-                placeholder="Cari Ujian Online…"
+                placeholder="Cari Tryout…"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 className="rounded-xl border-0 bg-white px-9 py-2 text-slate-900 shadow-sm outline-none ring-2 ring-transparent focus:ring-sky-300"
@@ -226,7 +226,7 @@ export default function TryoutListPage() {
                         className="justify-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-700"
                       >
                         <RotateCcw className="h-4 w-4" />
-                        Lanjutkan
+                        Lanjutkan Tryout
                       </Button>
                     ) : (
                       <Button
@@ -234,7 +234,7 @@ export default function TryoutListPage() {
                         disabled={starting || isCompleted}
                         title={
                           isCompleted
-                            ? "Ujian Online ini sudah diselesaikan"
+                            ? "Tryout ini sudah diselesaikan"
                             : undefined
                         }
                         className="justify-center gap-2 rounded-lg bg-sky-600 hover:bg-sky-700 disabled:bg-sky-300"
@@ -247,7 +247,7 @@ export default function TryoutListPage() {
                         ) : (
                           <>
                             <Play className="h-4 w-4" />
-                            Mulai Ujian Online
+                            Mulai Tryout
                           </>
                         )}
                       </Button>
@@ -273,7 +273,7 @@ export default function TryoutListPage() {
 
         {!working && items.length === 0 && (
           <div className="col-span-full rounded-2xl border bg-white p-10 text-center text-zinc-600">
-            Tidak ada ujian online yang tersedia.
+            Tidak ada tryout yang tersedia.
           </div>
         )}
       </section>

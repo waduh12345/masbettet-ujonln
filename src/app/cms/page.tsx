@@ -25,7 +25,7 @@ export default function Page() {
         label: "Total Siswa",
         value: data?.total_students ?? 0,
         icon: Users2,
-        hint: "Semua mahasiswa aktif",
+        hint: "Semua Siswa aktif",
       },
       {
         label: "Total Ujian",
@@ -40,10 +40,10 @@ export default function Page() {
         hint: "Modul pembelajaran",
       },
       {
-        label: "Total Mata Pelajaran",
+        label: "Total Sub Mata Pelajaran",
         value: data?.total_subject ?? 0,
         icon: GraduationCap,
-        hint: "Master mata kuliah",
+        hint: "Master Sub Mata Pelajaran",
       },
     ],
     [data]

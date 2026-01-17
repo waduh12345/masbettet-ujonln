@@ -6,13 +6,14 @@ export interface Student {
   user_id: number;
   nim: number | string;
   school_id: number;
-  participant_number: string | null;
   status: boolean | number;
+  is_premium: boolean | number;
   created_at: string;
   updated_at: string;
   name: string;
   email: string;
   phone: string | null;
+  sc_name?: string;
   school_name: string;
   password: string;
   password_confirmation: string;

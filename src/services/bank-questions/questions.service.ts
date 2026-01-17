@@ -95,7 +95,7 @@ export type QuestionImportPayload = {
 
 /** URL template CSV bawaan dari requirement */
 export const QUESTION_IMPORT_TEMPLATE_URL =
-  "https://api-ujian.masbettet.sch.id/question-import.csv";
+  "https://api-cbt.naditechno.id/question-import.csv";
 
 /** ===== API ===== */
 export const questionsApi = apiSlice.injectEndpoints({
@@ -121,6 +121,9 @@ export const questionsApi = apiSlice.injectEndpoints({
         const qs = new URLSearchParams();
         qs.set("page", String(page));
         qs.set("paginate", String(paginate));
+
+        qs.set("orderBy", "id");
+        qs.set("order", "asc");
 
         if (search && search.trim()) qs.set("search", search.trim());
         if (searchBySpecific && searchBySpecific.trim()) {

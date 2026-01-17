@@ -22,120 +22,146 @@ import {
 import { Switch } from "@/components/ui/switch";
 import SunRichText from "../ui/rich-text";
 
+// Import tipe asli dari service/types agar sinkron
+import { TestPayload } from "@/types/tryout/test";
+
 type Props = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSuccess?: () => void;
 };
 
-type TestCreatePayload = {
-  title: string;
-  sub_title: string;
-  description: string | null | string;
-  total_time: number;
-  pass_grade: number;
-  assessment_type: string;
-  timer_type: string;
-  score_type: string;
-  start_date: string;
-  end_date: string;
-  shuffle_questions: boolean | number;
-  code: string | null | string;
-  max_attempts: string | null;
-  is_graded: boolean;
-  is_explanation_released: boolean;
-};
+// Kita gunakan TestPayload sebagai basis tipe state form
+// Omit field yang opsional atau di-handle secara khusus jika perlu, tapi
+// untuk kasus ini, lebih baik kita ikuti struktur TestPayload agar kompatibel.
+type FormState = TestPayload;
 
 export default function TryoutForm({ open, onOpenChange, onSuccess }: Props) {
   const [modeTime, setModeTime] = useState<"default" | "custom">("default");
-  const [form, setForm] = useState<TestCreatePayload>({
+
+  // Inisialisasi state dengan semua field wajib dari TestPayload
+  const [form, setForm] = useState<FormState>({
     title: "",
     sub_title: "",
     description: "",
     total_time: 0,
     pass_grade: 70,
     assessment_type: "irt",
-    timer_type: "overall",
-    score_type: "point",
-    start_date: new Date().toISOString(),
-    end_date: new Date(Date.now() + 7 * 86400000).toISOString(),
-    shuffle_questions: false,
+    timer_type: "per_test",
+    score_type: "default",
+    start_date: new Date().toISOString().slice(0, 16),
+    end_date: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 16),
+    shuffle_questions: 0, // Default 0 (false)
     code: "",
     max_attempts: "1",
     is_graded: true,
     is_explanation_released: false,
+    status: 1,
+
+    // ✅ Tambahkan field wajib yang hilang sesuai error message
+    school_id: [], // Array kosong default
+    all_school: 0, // Default 0 (Manual)
+    user_id: 0, // Default 0 atau ID user yang sedang login
+    parent_id: null,
+    tryout_id: null,
+    // school_except_id juga opsional di interface, tapi sebaiknya diinisialisasi jika dipakai
+    school_except_id: [],
   });
 
   const [createTest, { isLoading }] = useCreateTestMutation();
-  const update = <K extends keyof TestCreatePayload>(
-    k: K,
-    v: TestCreatePayload[K]
-  ) => setForm((s) => ({ ...s, [k]: v }));
+
+  // Helper update yang aman secara tipe
+  const update = <K extends keyof FormState>(k: K, v: FormState[K]) =>
+    setForm((s) => ({ ...s, [k]: v }));
 
   const submit = async () => {
-    const payload: TestCreatePayload = {
+    // Persiapkan payload final
+    const payload: TestPayload = {
       ...form,
       total_time: modeTime === "default" ? 0 : Number(form.total_time || 0),
+      // Pastikan format shuffle_questions sesuai (number 0/1)
+      shuffle_questions: form.shuffle_questions ? 1 : 0,
+      // Format tanggal: replace 'T' dengan spasi jika backend meminta 'YYYY-MM-DD HH:mm:ss'
+      start_date: form.start_date ? form.start_date.replace("T", " ") : "",
+      end_date: form.end_date ? form.end_date.replace("T", " ") : "",
+
+      // Pastikan field array/null dikirim dengan benar
+      school_id: form.school_id || [],
+      parent_id: form.parent_id || null,
+      tryout_id: form.tryout_id || null,
     };
-    await createTest(payload).unwrap();
-    onSuccess?.();
+
+    try {
+      await createTest(payload).unwrap();
+      onSuccess?.();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to create test:", error);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl md:max-w-3xl xl:max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Buat Paket Masbettet</DialogTitle>
+          <DialogTitle>Buat Paket Try Out</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Title */}
           <div>
             <Label>Nama *</Label>
             <Input
-              placeholder="Name"
+              placeholder="Nama Paket"
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
             />
           </div>
+
+          {/* Sub Title */}
           <div>
-            <Label>Sub Title *</Label>
+            <Label>Sub Title</Label>
             <Input
               placeholder="Sub Title"
-              value={form.sub_title}
+              value={form.sub_title ?? ""}
               onChange={(e) => update("sub_title", e.target.value)}
             />
           </div>
 
+          {/* Description */}
           <div className="md:col-span-2">
-            <Label>Deskripsi *</Label>
+            <Label>Deskripsi</Label>
             <SunRichText
               value={form.description ?? ""}
               onChange={(html) => update("description", html)}
-              minHeight={220}
+              minHeight={150}
             />
           </div>
 
+          {/* Timer Logic */}
           <div>
-            <Label>Waktu Pengerjaan *</Label>
+            <Label>Mode Waktu</Label>
             <Select
               value={modeTime}
               onValueChange={(v) => setModeTime(v as "default" | "custom")}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Default / Custom" />
+                <SelectValue placeholder="Pilih Mode" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="default">Default</SelectItem>
-                <SelectItem value="custom">Custom</SelectItem>
+                <SelectItem value="default">
+                  Default (Tanpa Batas/Ikut Kategori)
+                </SelectItem>
+                <SelectItem value="custom">Custom (Set Detik)</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label>Waktu Pengerjaan (Detik) *</Label>
+            <Label>Waktu Pengerjaan (Detik)</Label>
             <Input
               type="number"
               min={0}
-              value={form.total_time}
+              value={form.total_time ?? 0}
               disabled={modeTime !== "custom"}
               onChange={(e) =>
                 update("total_time", Number(e.target.value || 0))
@@ -143,83 +169,109 @@ export default function TryoutForm({ open, onOpenChange, onSuccess }: Props) {
             />
           </div>
 
+          {/* Dates */}
           <div>
-            <Label>Metode Penilaian *</Label>
+            <Label>Tanggal Mulai</Label>
+            <Input
+              type="datetime-local"
+              value={form.start_date?.replace(" ", "T") ?? ""}
+              onChange={(e) => update("start_date", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Tanggal Selesai</Label>
+            <Input
+              type="datetime-local"
+              value={form.end_date?.replace(" ", "T") ?? ""}
+              onChange={(e) => update("end_date", e.target.value)}
+            />
+          </div>
+
+          {/* Configs */}
+          <div>
+            <Label>Metode Penilaian</Label>
             <Select
               value={form.assessment_type}
               onValueChange={(v) => update("assessment_type", v)}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Default" />
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="irt">irt</SelectItem>
-                <SelectItem value="classic">classic</SelectItem>
+                <SelectItem value="irt">IRT</SelectItem>
+                <SelectItem value="point">Point (Klasik)</SelectItem>
+                {/* Tambahkan opsi lain sesuai enum AssessmentType */}
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label>Shuffle Pertanyaan *</Label>
+            <Label>Shuffle Pertanyaan</Label>
             <Select
               value={form.shuffle_questions ? "yes" : "no"}
-              onValueChange={(v) => update("shuffle_questions", v === "yes")}
+              onValueChange={(v) =>
+                update("shuffle_questions", v === "yes" ? 1 : 0)
+              }
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="--Pilih Shuffle--" />
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="yes">Yes</SelectItem>
-                <SelectItem value="no">No</SelectItem>
+                <SelectItem value="yes">Ya</SelectItem>
+                <SelectItem value="no">Tidak</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label>Kode (opsional)</Label>
+            <Label>Kode Akses (Opsional)</Label>
             <Input
               value={form.code ?? ""}
               onChange={(e) => update("code", e.target.value)}
             />
           </div>
+
           <div>
             <Label>Max Attempts</Label>
             <Input
+              type="number"
               value={form.max_attempts ?? ""}
               onChange={(e) => update("max_attempts", e.target.value)}
             />
           </div>
-          <div className="mt-2 col-span-2">
-            <label
-              htmlFor="is_graded"
-              className="flex w-full items-center justify-between rounded-lg border bg-background px-3 py-2"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Status *</span>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${
-                    form.is_graded
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {form.is_graded ? "Active" : "Inactive"}
-                </span>
-              </div>
 
-              <Switch
-                id="is_graded"
-                checked={form.is_graded}
-                onCheckedChange={(v) => update("is_graded", v)}
-                className="data-[state=checked]:bg-emerald-600"
-              />
-            </label>
+          {/* Status Switch (Active/Inactive) */}
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="space-y-0.5">
+              <Label>Status Aktif</Label>
+              <div className="text-xs text-muted-foreground">
+                Apakah tes ini bisa diakses?
+              </div>
+            </div>
+            <Switch
+              checked={form.status === 1}
+              onCheckedChange={(v) => update("status", v ? 1 : 0)}
+            />
+          </div>
+
+          {/* Graded Switch */}
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="space-y-0.5">
+              <Label>Penilaian (Graded)</Label>
+              <div className="text-xs text-muted-foreground">
+                Hitung nilai akhir?
+              </div>
+            </div>
+            <Switch
+              checked={!!form.is_graded}
+              onCheckedChange={(v) => update("is_graded", v)}
+            />
           </div>
         </div>
 
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Reset
+            Batal
           </Button>
           <Button onClick={submit} disabled={isLoading}>
             {isLoading ? "Menyimpan..." : "Simpan"}

@@ -49,6 +49,7 @@ export default function SubMapelForm({
   onSuccess,
   onCancel,
   subjectPresetId,
+  subjectPresetName,
 }: SubMapelFormProps) {
   const {
     register,
@@ -110,17 +111,30 @@ export default function SubMapelForm({
 
   const loading = isSubmitting || creating || updating;
 
+  // === Tampilan label subject ===
+  const subjectLabel =
+    mode === "edit"
+      ? // Saat edit, gunakan langsung dari API
+        initialData?.subject_name
+        ? initialData.subject_code
+          ? `${initialData.subject_name} — ${initialData.subject_code}`
+          : initialData.subject_name
+        : `#${initialData?.subject_id}`
+      : // Saat create, gunakan preset dari page
+        subjectPresetName ?? "Belum dipilih (pilih di toolbar halaman)";
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {/* Subject readonly */}
       <div className="grid gap-1">
-        {/* <Label>Jurusan</Label> */}
-        {/* <div className="text-sm font-medium">{subjectLabel}</div> */}
+        <Label>Mata Pelajaran</Label>
+        <div className="text-sm font-medium">{subjectLabel}</div>
+        {/* Hidden actual field untuk submit */}
         <input type="hidden" {...register("subject_id", { required: true })} />
         {!subjectPresetId && mode === "create" ? (
           <p className="text-xs text-destructive mt-1">
-            Pilih Subject di toolbar halaman sebelum menambah Mata Pelajaran.
+            Pilih Subject di toolbar halaman sebelum menambah Sub Mata
+            Pelajaran.
           </p>
         ) : null}
       </div>
@@ -136,7 +150,7 @@ export default function SubMapelForm({
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="name">Nama Mata Pelajaran</Label>
+        <Label htmlFor="name">Nama Sub Mata Pelajaran</Label>
         <Input
           id="name"
           placeholder="Aljabar Linear"

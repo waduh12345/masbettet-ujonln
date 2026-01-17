@@ -103,7 +103,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 }
 function isActive(pathname: string, href?: string) {
   if (!href) return false;
-  if (href === "/") return pathname === "/";
+  if (href === "/student") return pathname === "/student";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 function hasStudentRole(roles?: Role[]) {

@@ -1,5 +1,5 @@
 import { apiSlice } from "@/services/base-query";
-import type { Test } from "@/types/tryout/test";
+import type { Test, TestPayload } from "@/types/tryout/test";
 
 /** =====================
  * Payload Types (API)
@@ -7,31 +7,6 @@ import type { Test } from "@/types/tryout/test";
 export type TimerType = string;
 export type ScoreType = string; //"irt" | "default"
 export type AssessmentType = string; // "irt" | "standard"
-
-/** Payload yang DIKIRIM ke backend saat create/update */
-export interface TestPayload {
-  title: string;
-  sub_title: string | null;
-  shuffle_questions: boolean | number; // <- angka sesuai spesifikasi backend
-  timer_type: TimerType;
-  score_type: ScoreType;
-
-  // kondisional
-  total_time?: number; // wajib jika timer_type = 'per_test'
-  start_date?: string; // wajib jika score_type = 'irt'
-  end_date?: string; // wajib jika score_type = 'irt'
-
-  // field lain (optional, sesuai backend kamu)
-  slug?: string;
-  description?: string | null;
-  total_questions?: number;
-  pass_grade?: number;
-  assessment_type?: AssessmentType;
-  code?: string | null;
-  max_attempts?: string | null;
-  is_graded?: boolean;
-  is_explanation_released?: boolean;
-}
 
 /** Untuk update jika backend menerima parsial */
 export type TestUpdatePayload = Partial<TestPayload>;
@@ -68,7 +43,7 @@ type VoidResponse = {
  * ===================== */
 export const testApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // ✅ Get all (paginated + optional search + 🆕 school_id)
+    // ✅ Get all (paginated + optional search + 🆕 school_id + 🆕 isParent + 🆕 tryout_id)
     getTestList: builder.query<
       {
         data: Test[];
@@ -86,6 +61,8 @@ export const testApi = apiSlice.injectEndpoints({
         orderDirection?: "asc" | "desc";
         school_id?: number | null;
         is_active?: number | null;
+        isParent?: boolean | number;
+        tryout_id?: number | null; // 🆕 Added tryout_id param
       }
     >({
       query: ({
@@ -96,7 +73,9 @@ export const testApi = apiSlice.injectEndpoints({
         orderBy,
         orderDirection,
         school_id,
-        is_active
+        is_active,
+        isParent,
+        tryout_id,
       }) => {
         const qs = new URLSearchParams();
 
@@ -104,12 +83,9 @@ export const testApi = apiSlice.injectEndpoints({
         qs.set("page", String(page));
         qs.set("paginate", String(paginate));
 
-        // 🆕 jika ada school_id, pakai pola searchBySpecific=school_id & search=<id>
         if (typeof school_id === "number") {
-          // qs.set("searchBySpecific", "school_id");
           qs.set("school_id", String(school_id));
         } else {
-          // fallback ke perilaku lama
           if (search && search.trim()) qs.set("search", search.trim());
           if (searchBySpecific && searchBySpecific.trim()) {
             qs.set("searchBySpecific", searchBySpecific.trim());
@@ -120,11 +96,20 @@ export const testApi = apiSlice.injectEndpoints({
         if (orderDirection && orderDirection.trim()) {
           qs.set("order", orderDirection.trim());
         }
-        if (is_active !== undefined) {
+        if (is_active !== undefined && is_active !== null) {
           qs.set("is_active", String(is_active));
         }
 
-        // contoh hasil: /test/tests?paginate=10&searchBySpecific=school_id&page=1&search=2
+        // 🆕 Tambahkan filter is_parent jika ada
+        if (isParent) {
+          qs.set("is_parent", "1");
+        }
+
+        // 🆕 Tambahkan filter tryout_id jika ada
+        if (tryout_id !== undefined && tryout_id !== null) {
+          qs.set("tryout_id", String(tryout_id));
+        }
+
         return {
           url: `/test/tests?${qs.toString()}`,
           method: "GET",

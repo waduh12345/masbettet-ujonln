@@ -9,7 +9,6 @@ import {
   IconDashboard,
   IconDatabase,
   IconFolderQuestion,
-  IconInfoCircle,
   IconLayoutDashboard,
   IconSettings,
   IconUserCog,
@@ -78,11 +77,6 @@ const NAV_BY_ROLE: Record<RoleName, MenuBundle> = {
         icon: IconLayoutDashboard,
       },
       {
-        title: "Pengumuman",
-        url: "/cms/announcements",
-        icon: IconInfoCircle,
-      },
-      {
         title: "Data Siswa",
         url: "/cms/siswa",
         icon: IconBrandDatabricks,
@@ -93,9 +87,13 @@ const NAV_BY_ROLE: Record<RoleName, MenuBundle> = {
         icon: IconFolderQuestion,
       },
       {
-        title: "Ujian Online",
+        title: "Manajemen Try Out",
         url: "/cms/tryout",
         icon: IconZoomQuestion,
+        children: [
+          { title: "Kategori", url: "/cms/tryout/sub-menu" },
+          { title: "Try Out", url: "/cms/tryout" },
+        ]
       },
       {
         title: "Bank Soal",
@@ -111,10 +109,10 @@ const NAV_BY_ROLE: Record<RoleName, MenuBundle> = {
         url: "#",
         icon: IconZoomQuestion,
         children: [
-          { title: "Jurusan", url: "/cms/jurusan" },
-          // { title: "Jurusan", url: "/cms/jurusan" },
+          { title: "Sekolah", url: "/cms/sekolah" },
+          { title: "Mata Pelajaran", url: "/cms/mapel" },
           { title: "Kelas", url: "/cms/class" },
-          { title: "Mata Pelajaran", url: "/cms/mata-pelajaran" },
+          { title: "Sub Mata Pelajaran", url: "/cms/mata-kuliah" },
         ],
       },
       {
@@ -145,7 +143,7 @@ const NAV_BY_ROLE: Record<RoleName, MenuBundle> = {
         icon: IconDashboard,
       },
       {
-        title: "Ujian Online",
+        title: "Try Out",
         url: "/cms/tryout",
         icon: IconZoomQuestion,
       },
@@ -193,7 +191,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <a href="#">
                 <Image
                   src="/masbettet-logo.webp"
-                  alt="Masbettet"
+                  alt="CBT Kampus"
                   width={32}
                   height={32}
                 />

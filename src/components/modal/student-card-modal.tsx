@@ -17,7 +17,6 @@ export type StudentLite = {
   email?: string | null;
   phone?: string | null;
   school_name?: string | null;
-  participant_number: string | null;
   class_name?: string | null;
   session?: string | number | null;
   room?: string | number | null;
@@ -31,7 +30,7 @@ type Props = {
 };
 
 /**
- * THEME WARNA (Hijau sesuai logo yang diberikan)
+ * THEME WARNA (oranye + biru, sesuai logo) + pengaturan agar warna ikut tercetak
  */
 export const CARD_STYLES = `
   /* Paksa browser mencetak warna & background */
@@ -69,11 +68,12 @@ export const CARD_STYLES = `
     height: 100%;
   }
 
-  /* HEADER: Hijau sesuai dengan warna pada logo */
+  /* HEADER: oranye -> biru seperti logo */
   .student-card-header {
     padding: 18px 22px;
-    background: linear-gradient(120deg, #006400 0%, #228b22 100%);  /* Hijau gelap dan terang */
-    color: #ffffff;
+    background: linear-gradient(120deg, #f97316 0%, #f59e0b 24%, #2563eb 68%, #1d4ed8 100%);
+    background-color: #2563eb; /* fallback jika gradient di-remove */
+    color: #f9fafb;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -87,16 +87,16 @@ export const CARD_STYLES = `
     gap: 14px;
   }
 
-  /* Logo baru (Mas Bettet) */
+  /* Logo kubus oranye */
   .student-card-logo {
     width: 52px;
     height: 52px;
     border-radius: 16px;
-    background: #006400; /* Hijau untuk logo */
+    background: linear-gradient(135deg, #facc15 0%, #f97316 40%, #ea580c 80%);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
+    color: #0f172a;
     font-weight: 900;
     font-size: 13px;
     letter-spacing: 0.08em;
@@ -140,8 +140,8 @@ export const CARD_STYLES = `
   .student-card-exam-tag {
     padding: 4px 10px;
     border-radius: 999px;
-    background: rgba(34, 197, 94, 0.3); /* Hijau pada tag */
-    border: 1px solid rgba(34, 197, 94, 0.9);
+    background: rgba(15, 23, 42, 0.26);
+    border: 1px solid rgba(254, 249, 195, 0.9);
     font-size: 11px;
     font-weight: 600;
     display: inline-flex;
@@ -169,17 +169,18 @@ export const CARD_STYLES = `
     pointer-events: none;
   }
 
-  /* BODY: latar hijau muda */
+  /* BODY: latar lembut oranye + biru */
   .student-card-body {
     padding: 18px 22px 16px 22px;
-    background: #e2f3e2;  /* Latar hijau muda */
+    background: radial-gradient(130% 140% at 0% 0%, #fff7ed 0%, #ffffff 55%, #e0f2fe 100%);
+    background-color: #fff7ed;
   }
 
   .student-card-box {
     border-radius: 16px;
     border: 1px solid #e5e7eb;
-    background: radial-gradient(120% 120% at 0% 0%, #fff7ed 0%, #ffffff 45%, #eff6ff 100%);
-    background-color: #fff7ed;
+    background: radial-gradient(120% 120% at 0% 0%, #fffbeb 0%, #ffffff 45%, #eff6ff 100%);
+    background-color: #fffbeb;
     padding: 18px 18px 14px 18px;
     display: flex;
     flex-direction: column;
@@ -213,12 +214,12 @@ export const CARD_STYLES = `
   }
 
   .student-card-k {
-    font-size: 14px;
+    font-size: 12px;
     color: #6b7280;
   }
 
   .student-card-v {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
     color: #111827;
   }
@@ -232,13 +233,13 @@ export const CARD_STYLES = `
     gap: 10px;
   }
 
-  /* FRAME FOTO: hijau gradient */
+  /* FRAME FOTO: biru gradient */
   .student-card-photo-frame {
     width: 120px;
     height: 140px;
     border-radius: 18px;
-    background: linear-gradient(150deg, #006400 0%, #228b22 45%);  /* Hijau gelap dan terang */
-    background-color: #006400;
+    background: linear-gradient(150deg, #0ea5e9 0%, #2563eb 45%, #1e40af 80%);
+    background-color: #2563eb;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -267,7 +268,7 @@ export const CARD_STYLES = `
     text-align: center;
   }
 
-  /* CHIP NOMOR PESERTA: hijau + oranye */
+  /* CHIP NOMOR PESERTA: oranye + biru */
   .student-card-idchip {
     margin-top: 4px;
     padding: 6px 10px;
@@ -294,6 +295,7 @@ export const CARD_STYLES = `
     color: #ea580c;
   }
 
+  /* FOOTER */
   .student-card-footer {
     padding: 10px 22px 16px 22px;
     background: #f9fafb;
@@ -386,19 +388,25 @@ export default function StudentCardModal({
   const name = student?.name ?? "—";
   const kelas = student?.class_name ?? "—";
   const prodi = student?.school_name ?? "—";
-  const nopeserta = student?.participant_number ?? "—";
+  const sesi = student?.session ?? "—";
+  const ruang = student?.room ?? "—";
+  const pwd = student?.password ?? "—";
 
+  // <div class="student-card-kv">
+  //   <div class="student-card-k">NISN / NIS</div>
+  //   <div class="student-card-v">${nim}</div>
+  // </div>
   const buildCardInnerHTML = () => `
     <div class="student-card-root">
       <div class="student-card-inner">
         <div class="student-card-header">
           <div class="student-card-header-left">
             <div class="student-card-logo">
-              <img src="/masbettet-logo.webp" alt="Logo" width="52" height="52" />
+              EDU
             </div>
             <div class="student-card-school-block">
               <div class="student-card-school-name">
-                MA Miftahululum Bettet Pamekasan
+                ${prodi !== "—" ? prodi : "NAMA SEKOLAH"}
               </div>
               <div class="student-card-exam-name">
                 KARTU PESERTA SUMATIF AKHIR TAHUN
@@ -414,6 +422,7 @@ export default function StudentCardModal({
               <span>RESMI • UJIAN SEKOLAH</span>
             </div>
           </div>
+          <div class="student-card-header-watermark"></div>
         </div>
 
         <div class="student-card-body">
@@ -427,19 +436,19 @@ export default function StudentCardModal({
                 </div>
                 
                 <div class="student-card-kv">
-                  <div class="student-card-k">NISN</div>
-                  <div class="student-card-v">${nim}</div>
-                </div>
-                 <div class="student-card-kv">
-                  <div class="student-card-k">No. Peserta</div>
-                  <div class="student-card-v">${nopeserta}</div>
+                  <div class="student-card-k">Password Ujian</div>
+                  <div class="student-card-v">${pwd}</div>
                 </div>
                 <div class="student-card-kv">
                   <div class="student-card-k">Kelas</div>
                   <div class="student-card-v">${kelas}</div>
                 </div>
                 <div class="student-card-kv">
-                  <div class="student-card-k">Jurusan</div>
+                  <div class="student-card-k">Sesi / Ruang</div>
+                  <div class="student-card-v">${sesi} / ${ruang}</div>
+                </div>
+                <div class="student-card-kv">
+                  <div class="student-card-k">Program / Sekolah</div>
                   <div class="student-card-v">${prodi}</div>
                 </div>
               </div>
@@ -454,6 +463,17 @@ export default function StudentCardModal({
                     Foto 3x4
                   </div>
                 </div>
+                <div class="student-card-idchip">
+                  <span>No. Peserta <strong>${nim}</strong></span>
+                  
+                </div>
+              </div>
+            </div>
+
+            <div class="student-card-badge-bottom">
+              <div class="student-card-badge-inner">
+                <span class="student-card-badge-dot"></span>
+                <span>Kartu Peserta • ${nim}</span>
               </div>
             </div>
           </div>
@@ -468,7 +488,7 @@ export default function StudentCardModal({
             <div class="student-card-signature-label">
               Peserta Ujian
             </div>
-            <div class="student-card-signature-line">${name}</div>
+            <div class="student-card-signature-line"></div>
           </div>
         </div>
       </div>

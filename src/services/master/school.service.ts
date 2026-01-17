@@ -3,7 +3,61 @@ import type { School } from "@/types/master/school";
 
 export const schoolApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // ✅ Get all (paginated + optional search)
+    getSchoolListPublic: builder.query<
+      {
+        data: School[];
+        last_page: number;
+        current_page: number;
+        total: number;
+        per_page: number;
+      },
+      // 👇 Update tipe argumen disini (tambah order & orderBy)
+      {
+        page: number;
+        paginate: number;
+        search?: string;
+        order?: string;
+        orderBy?: string;
+      }
+    >({
+      query: ({ page, paginate, search, order, orderBy }) => {
+        // Logic search existing
+        const s =
+          search && search.trim()
+            ? `&search=${encodeURIComponent(search.trim())}`
+            : "";
+
+        // Logic order (asc/desc)
+        const o = order ? `&order=${order}` : "";
+
+        // 👇 Logic orderBy (column name, e.g., 'schools.name')
+        const ob = orderBy ? `&orderBy=${orderBy}` : "";
+
+        return {
+          url: `/public/schools?page=${page}&paginate=${paginate}${s}${o}${ob}`,
+          method: "GET",
+        };
+      },
+      transformResponse: (response: {
+        code: number;
+        message: string;
+        data: {
+          current_page: number;
+          data: School[];
+          last_page: number;
+          total: number;
+          per_page: number;
+        };
+      }) => ({
+        data: response.data.data,
+        last_page: response.data.last_page,
+        current_page: response.data.current_page,
+        total: response.data.total,
+        per_page: response.data.per_page,
+      }),
+    }),
+
+    // ✅ Get all (paginated + optional search + optional order + optional orderBy)
     getSchoolList: builder.query<
       {
         data: School[];
@@ -12,15 +66,29 @@ export const schoolApi = apiSlice.injectEndpoints({
         total: number;
         per_page: number;
       },
-      { page: number; paginate: number; search?: string }
+      // 👇 Update tipe argumen disini (tambah order & orderBy)
+      {
+        page: number;
+        paginate: number;
+        search?: string;
+        order?: string;
+        orderBy?: string;
+      }
     >({
-      query: ({ page, paginate, search }) => {
+      query: ({ page, paginate, search, order, orderBy }) => {
         const s =
           search && search.trim()
             ? `&search=${encodeURIComponent(search.trim())}`
             : "";
+
+        // Logic order (asc/desc)
+        const o = order ? `&order=${order}` : "";
+
+        // 👇 Logic orderBy (column name, e.g., 'schools.name')
+        const ob = orderBy ? `&orderBy=${orderBy}` : "";
+
         return {
-          url: `/master/schools?page=${page}&paginate=${paginate}${s}`,
+          url: `/master/schools?page=${page}&paginate=${paginate}${s}${o}${ob}`,
           method: "GET",
         };
       },
@@ -109,4 +177,5 @@ export const {
   useCreateSchoolMutation,
   useUpdateSchoolMutation,
   useDeleteSchoolMutation,
+  useGetSchoolListPublicQuery,
 } = schoolApi;

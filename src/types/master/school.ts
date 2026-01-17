@@ -5,10 +5,11 @@ export interface School {
   status: boolean;
   created_at: string;
   updated_at: string;
-  province_id: string;
-  regency_id: string;
-  district_id: string;
-  province_name: "ACEH";
-  regency_name: "KAB. ACEH SELATAN";
-  district_name: "Bakongan";
+  province_id: string | null;
+  regency_id: string | null;
+  district_id: string | null;
+  village_id: string | null;
+  province_name: string | null;
+  regency_name: string | null;
+  district_name: string | null;
 }
